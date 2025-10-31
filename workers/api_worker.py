@@ -182,7 +182,7 @@ class APIWorker(QObject):
                 self.login_verified.emit({}, result['error'])
     
     def register_user(self, user_data):
-        def worker():
+        def worker(user_data_param):
             try:
                 if self.data is None:
                     return {'success': False, 'error': "Dados não carregados", 'type': 'register'}
@@ -193,8 +193,8 @@ class APIWorker(QObject):
                 clean_data['NOME COMPLETO'] = clean_data['NOME COMPLETO'].astype(str).str.strip()
                 
                 # Verificar se usuário já existe
-                login_exists = not clean_data[clean_data['LOGIN'] == user_data['login'].strip()].empty
-                nome_exists = not clean_data[clean_data['NOME COMPLETO'] == user_data['nome_completo'].strip()].empty
+                login_exists = not clean_data[clean_data['LOGIN'] == user_data_param['login'].strip()].empty
+                nome_exists = not clean_data[clean_data['NOME COMPLETO'] == user_data_param['nome_completo'].strip()].empty
                 
                 if login_exists and nome_exists:
                     return {'success': False, 'error': "Login e Nome Completo já existem", 'type': 'register'}
