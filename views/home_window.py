@@ -4,6 +4,8 @@ from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtGui import QFont
 from utils.styles import get_home_styles
 
+#comentario teste
+
 class HomeWindow(QWidget):
     logout_request = pyqtSignal()
     
