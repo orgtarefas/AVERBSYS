@@ -21,6 +21,7 @@ Sistema de autenticação desenvolvido em Python com PyQt5, integrado com Google
 ## 📦 Instalação
 
 pip install PyQt5 pandas requests lxml html5lib beautifulsoup4 pyinstaller openpyxl
+pip install google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client
 
 1. Clone o repositório:
 ```bash

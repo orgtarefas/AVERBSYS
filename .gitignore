@@ -38,3 +38,9 @@ Thumbs.db
 
 # Logs
 *.log
+
+
+# Adicione ao .gitignore para evitar futuros commits
+echo "serviceAccountKey.json" >> .gitignore
+echo "*.json" >> .gitignore
+echo "firebase-config.json" >> .gitignore
