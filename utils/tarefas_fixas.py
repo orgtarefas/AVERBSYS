@@ -1,4 +1,4 @@
-# Tarefas fixas para cada tipo de proposta
+# Tarefas fixas para cada tipo de proposta 
 TAREFAS_SAQUE_FACIL = {
     "tarefa_1": "Verificar elegibilidade do cliente",
     "tarefa_2": "Confirmar documentação completa", 
