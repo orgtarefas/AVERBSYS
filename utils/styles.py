@@ -1,44 +1,45 @@
 def get_login_styles():
     return """
     QWidget {
-        background-color: #f0f2f5;
+        background-color: #f5f6fa;
         font-family: 'Segoe UI', Arial, sans-serif;
     }
     
-    #title {
+    QLabel#title {
         font-size: 28px;
         font-weight: bold;
-        color: #1a73e8;
-        padding: 20px;
+        color: #2c3e50;
+        margin-bottom: 10px;
     }
     
-    #formFrame {
+    QLabel#subtitle {
+        font-size: 16px;
+        color: #7f8c8d;
+        margin-bottom: 20px;
+    }
+    
+    QFrame#formFrame {
         background-color: white;
         border-radius: 10px;
         padding: 30px;
-        border: 1px solid #dadce0;
+        border: 1px solid #ddd;
     }
     
-    QLabel {
-        font-size: 14px;
-        color: #5f6368;
-        font-weight: 500;
-    }
-    
-    #inputField {
+    QLineEdit#inputField {
         padding: 12px;
-        border: 2px solid #dadce0;
+        border: 2px solid #ecf0f1;
         border-radius: 6px;
         font-size: 14px;
+        background-color: #fafbfc;
+    }
+    
+    QLineEdit#inputField:focus {
+        border-color: #3498db;
         background-color: white;
     }
     
-    #inputField:focus {
-        border-color: #1a73e8;
-    }
-    
-    #loginButton {
-        background-color: #1a73e8;
+    QPushButton#loginButton {
+        background-color: #27ae60;
         color: white;
         border: none;
         padding: 12px;
@@ -47,25 +48,22 @@ def get_login_styles():
         font-weight: bold;
     }
     
-    #loginButton:hover {
-        background-color: #1669d6;
+    QPushButton#loginButton:hover {
+        background-color: #219a52;
     }
     
-    #loginButton:disabled {
-        background-color: #cccccc;
+    QPushButton#loginButton:disabled {
+        background-color: #bdc3c7;
     }
     
-    #registerButton {
+    QPushButton#sobreButton {
         background-color: transparent;
-        color: #1a73e8;
-        border: 1px solid #dadce0;
-        padding: 12px;
-        border-radius: 6px;
-        font-size: 14px;
+        border: none;
+        padding: 0px;
     }
     
-    #registerButton:hover {
-        background-color: #f8f9fa;
+    QPushButton#sobreButton:hover {
+        opacity: 0.7;
     }
     """
 
@@ -384,6 +382,57 @@ def get_propostas_styles():
         margin-bottom: 10px;
     }
 
+        /* Novos estilos para a aba Histórico */
+    QDateEdit {
+        padding: 8px;
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        background-color: white;
+        font-size: 14px;
+    }
+    
+    QDateEdit::drop-down {
+        subcontrol-origin: padding;
+        subcontrol-position: top right;
+        width: 25px;
+        border-left-width: 1px;
+        border-left-color: #ddd;
+        border-left-style: solid;
+    }
+    
+    QComboBox {
+        padding: 8px;
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        background-color: white;
+        font-size: 14px;
+        min-width: 150px;
+    }
+    
+    QComboBox::drop-down {
+        subcontrol-origin: padding;
+        subcontrol-position: top right;
+        width: 25px;
+        border-left-width: 1px;
+        border-left-color: #ddd;
+        border-left-style: solid;
+    }
+    
+    QComboBox QAbstractItemView {
+        border: 1px solid #ddd;
+        background-color: white;
+        selection-background-color: #4CAF50;
+        selection-color: white;
+    }
+    
+    .warningLabel {
+        color: #ff9800;
+        font-size: 12px;
+        font-weight: bold;
+        padding: 5px;
+        background-color: #fff3e0;
+        border-radius: 3px;
+    }
 
     """
 

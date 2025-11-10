@@ -7,6 +7,7 @@ from utils.styles import get_register_styles
 class RegisterWindow(QWidget):
     register_attempt = pyqtSignal(dict)
     back_to_login = pyqtSignal()
+    back_to_propostas = pyqtSignal()  # NOVO SINAL para voltar às propostas
     
     def __init__(self):
         super().__init__()
@@ -62,9 +63,10 @@ class RegisterWindow(QWidget):
         self.register_button.setObjectName("registerButton")
         self.register_button.clicked.connect(self.attempt_register)
         
-        self.back_button = QPushButton("Voltar ao Login")
+        # MUDANÇA AQUI: Botão Voltar agora emite back_to_propostas
+        self.back_button = QPushButton("Voltar")
         self.back_button.setObjectName("backButton")
-        self.back_button.clicked.connect(self.back_to_login.emit)
+        self.back_button.clicked.connect(self.back_to_propostas.emit)
         
         buttons_layout.addWidget(self.back_button)
         buttons_layout.addWidget(self.register_button)

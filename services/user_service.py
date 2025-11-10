@@ -90,3 +90,54 @@ class UserService(QObject):
         except Exception as e:
             print(f"Erro ao listar usuários: {e}")
             return []
+
+    # NOVOS MÉTODOS PARA MANUTENÇÃO DE USUÁRIOS
+    def listar_todos_usuarios(self):
+        """Lista todos os usuários do sistema"""
+        try:
+            docs = self.users_ref.stream()
+            
+            usuarios = []
+            for doc in docs:
+                usuario_data = doc.to_dict()
+                usuario_data['id'] = doc.id
+                usuarios.append(usuario_data)
+            
+            return usuarios
+        except Exception as e:
+            print(f"Erro ao listar usuários: {e}")
+            return []
+
+    def resetar_senha(self, login, nova_senha):
+        """Reseta a senha de um usuário"""
+        try:
+            query = self.users_ref.where('login', '==', login)
+            docs = query.get()
+            
+            if not docs:
+                return False
+            
+            for doc in docs:
+                doc.reference.update({'senha': nova_senha})
+            
+            return True
+        except Exception as e:
+            print(f"Erro ao resetar senha: {e}")
+            return False
+
+    def atualizar_usuario(self, login, dados_atualizados):
+        """Atualiza os dados de um usuário"""
+        try:
+            query = self.users_ref.where('login', '==', login)
+            docs = query.get()
+            
+            if not docs:
+                return False
+            
+            for doc in docs:
+                doc.reference.update(dados_atualizados)
+            
+            return True
+        except Exception as e:
+            print(f"Erro ao atualizar usuário: {e}")
+            return False
