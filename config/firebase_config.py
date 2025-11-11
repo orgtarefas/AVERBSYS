@@ -1,6 +1,7 @@
 import firebase_admin
 from firebase_admin import credentials, firestore
 import os
+import sys
 
 class FirebaseManager:
     _instance = None
@@ -14,11 +15,30 @@ class FirebaseManager:
     def __init__(self):
         if not self._initialized:
             try:
-                # Verificar se o arquivo de credenciais existe
-                cred_path = "serviceAccountKey.json"
+                # Função para obter o caminho correto no executável
+                def resource_path(relative_path):
+                    try:
+                        base_path = sys._MEIPASS
+                    except Exception:
+                        base_path = os.path.abspath(".")
+                    return os.path.join(base_path, relative_path)
                 
-                if not os.path.exists(cred_path):
-                    raise FileNotFoundError(f"Arquivo {cred_path} não encontrado na raiz do projeto!")
+                # Tentar diferentes caminhos para o arquivo de credenciais
+                cred_paths = [
+                    resource_path('serviceAccountKey.json'),  # No executável
+                    'serviceAccountKey.json',  # No desenvolvimento
+                    os.path.join(os.path.dirname(__file__), 'serviceAccountKey.json')
+                ]
+                
+                cred_path = None
+                for path in cred_paths:
+                    if os.path.exists(path):
+                        cred_path = path
+                        print(f"✅ Arquivo de credenciais encontrado em: {path}")
+                        break
+                
+                if not cred_path:
+                    raise FileNotFoundError("Arquivo serviceAccountKey.json não encontrado em nenhum dos caminhos!")
                 
                 # Inicializar Firebase apenas se não estiver inicializado
                 if not firebase_admin._apps:

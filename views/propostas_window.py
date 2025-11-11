@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
                              QFormLayout, QFileDialog, QDialog, QListWidget,
                              QListWidgetItem, QDialogButtonBox)
 from PyQt5.QtCore import Qt, pyqtSignal, QTimer, QDate
-from PyQt5.QtGui import QIntValidator, QIcon
+from PyQt5.QtGui import QIntValidator, QPixmap, QIcon
 import os
 from datetime import datetime, timedelta
 from services.proposta_service import PropostaService
@@ -25,6 +25,8 @@ try:
 except ImportError:
     OPENPYXL_AVAILABLE = False
     print("Aviso: openpyxl não instalado. Instale com: pip install openpyxl")
+import sys
+import os    
 
 class MotivoRecusaDialog(QDialog):
     motivo_selecionado = pyqtSignal(str, str)  # id, descricao
@@ -200,6 +202,14 @@ class GoogleSheetsService:
         return "Produto não encontrado"
 
 
+def resource_path(relative_path):
+    """Get absolute path to resource, works for dev and for PyInstaller"""
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+
 class PropostasWindow(QWidget):
     logout_request = pyqtSignal()
     abrir_manutencao_usuarios = pyqtSignal()
@@ -234,6 +244,9 @@ class PropostasWindow(QWidget):
         self.timer_duracao.timeout.connect(self.atualizar_duracao_display)
         self.init_ui()
     
+
+
+
     def init_ui(self):
         # DEFINIR ÍCONE DA JANELA
         try:
@@ -241,17 +254,69 @@ class PropostasWindow(QWidget):
         except:
             print("Logo não encontrada. Verifique o caminho: assets/logo.png")
 
+
+
+
         self.setWindowTitle("AVERBSYS")
         self.setStyleSheet(get_propostas_styles())
         
         layout = QVBoxLayout()
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.setSpacing(15)
+        layout.setContentsMargins(5, 5, 5, 5)
+        layout.setSpacing(5)
         
-        # Header
-        header = self.criar_header()
+        # LINHA 1: AVERBSYS + User info + Botões
+        header_layout = QHBoxLayout()
         
-        # Tabs principais
+        
+        # User info + Botões (LADO DIREITO)
+        user_controls_layout = QHBoxLayout()
+        user_controls_layout.setSpacing(5)
+        
+        # Informações do usuário
+        user_info_label = QLabel(f"{self.user_data['nome_completo']} - {self.user_data['perfil']}")
+        user_info_label.setObjectName("userInfoLabel")
+        user_info_label.setStyleSheet("""
+            QLabel {
+                color: #2c3e50;
+                font-weight: bold;
+                padding: 5px 10px;
+                background-color: #ecf0f1;
+                border-radius: 4px;
+            }
+        """)
+        
+        # Botão Cadastrar Usuário (apenas para Dev)
+        self.cadastrar_button = QPushButton("Cadastrar")
+        self.cadastrar_button.setObjectName("primaryButton")
+        self.cadastrar_button.clicked.connect(self.cadastrar_usuario)
+        self.cadastrar_button.setFixedWidth(120)
+        
+        # Botão Manutenção de Usuários (apenas para Gerente e Dev)
+        self.manutencao_button = QPushButton("Manutenção")
+        self.manutencao_button.setObjectName("primaryButton")
+        self.manutencao_button.clicked.connect(self.abrir_manutencao_usuarios.emit)
+        self.manutencao_button.setFixedWidth(120)
+        
+        # Botão Sair
+        self.logout_button = QPushButton("Sair")
+        self.logout_button.setObjectName("logoutButton")
+        self.logout_button.clicked.connect(self.logout_request.emit)
+        self.logout_button.setFixedWidth(80)
+        
+        # Configurar visibilidade dos botões baseado no perfil
+        self.configurar_botoes_por_perfil()
+        
+        # Adicionar controles ao layout
+        user_controls_layout.addWidget(user_info_label)
+        user_controls_layout.addWidget(self.cadastrar_button)
+        user_controls_layout.addWidget(self.manutencao_button)
+        user_controls_layout.addWidget(self.logout_button)
+        
+        # Adicionar ao header
+        header_layout.addStretch()
+        header_layout.addLayout(user_controls_layout)
+        
+        # LINHA 2: Tabs principais
         self.tabs = QTabWidget()
         self.tabs.currentChanged.connect(self.aba_mudou)
         
@@ -272,15 +337,46 @@ class PropostasWindow(QWidget):
         # Conectar sinais
         self.proposta_service.proposta_criada.connect(self.on_proposta_criada)
         
-        layout.addWidget(header)
+        # Adicionar ao layout principal
+        layout.addLayout(header_layout)
         layout.addWidget(self.tabs)
         
         self.setLayout(layout)
-        self.resize(1200, 800)
+       # self.resize(900, 400)
+   
+        # TAMANHO RESPONSIVO baseado na tela
+        self.ajustar_tamanho_responsivo()
+        
+        # Centralizar na tela
+        self.center_window()    
         
         # Carregar dados iniciais
         self.carregar_historico()
         self.carregar_filtros_iniciais()
+
+
+    def center_window(self):
+        screen = self.screen().availableGeometry()
+        size = self.geometry()
+        self.move(
+            (screen.width() - size.width()) // 2,
+            (screen.height() - size.height()) // 2
+        )
+
+    def ajustar_tamanho_responsivo(self):
+        """Ajusta o tamanho da janela baseado no tamanho da tela"""
+        screen = self.screen().availableGeometry()
+        
+        # Usar porcentagem da tela (80% da largura, 70% da altura)
+        width = int(screen.width() * 0.8)
+        height = int(screen.height() * 0.7)
+        
+        # Limites mínimos e máximos
+        width = max(900, min(width, 1400))   # Mín: 900, Máx: 1400
+        height = max(500, min(height, 800))  # Mín: 500, Máx: 800
+        
+        self.resize(width, height)        
+
     
     def carregar_filtros_iniciais(self):
         """Carrega os dados reais nos filtros de todas as abas"""
@@ -316,13 +412,49 @@ class PropostasWindow(QWidget):
             QMessageBox.warning(self, "Erro", 
                               f"Erro ao carregar dados da planilha: {str(e)}")
     
+
     def criar_header(self):
         header = QFrame()
         header.setObjectName("header")
-        header_layout = QHBoxLayout()
+        header_layout = QVBoxLayout()  # MUDADO para VBoxLayout
         
+        # LINHA SUPERIOR: Logo + Nome + Welcome + Botões
+        top_layout = QHBoxLayout()
+        
+        # LOGO + NOME (LADO ESQUERDO)
+        logo_nome_layout = QHBoxLayout()
+        try:
+            logo_label = QLabel()
+            pixmap = QPixmap(resource_path('assets/logo.png'))
+            pixmap = pixmap.scaled(32, 32, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            logo_label.setPixmap(pixmap)
+            logo_nome_layout.addWidget(logo_label)
+            logo_nome_layout.addSpacing(8)
+        except Exception as e:
+            print(f"Logo não encontrada: {e}")
+        
+        # Nome do sistema + versão
+        nome_versao_layout = QVBoxLayout()
+        nome_versao_layout.setSpacing(0)
+        
+        #nome_label = QLabel("AVERBSYS")
+        #nome_label.setObjectName("sistemaNome")
+        
+        #versao_label = QLabel("v0.1")
+        #versao_label.setObjectName("sistemaVersao")
+        
+        #nome_versao_layout.addWidget(nome_label)
+        #nome_versao_layout.addWidget(versao_label)
+        
+        #logo_nome_layout.addLayout(nome_versao_layout)
+        logo_nome_layout.addStretch()
+        
+        # Welcome label no centro
         welcome_label = QLabel(f"Analista: {self.user_data['nome_completo']} - {self.user_data['perfil']}")
         welcome_label.setObjectName("welcomeLabel")
+        
+        # Botões no lado direito
+        botoes_layout = QHBoxLayout()
         
         # Botão Cadastrar Usuário (apenas para Dev)
         self.cadastrar_button = QPushButton("➕ Cadastrar Usuário")
@@ -334,20 +466,34 @@ class PropostasWindow(QWidget):
         self.manutencao_button.setObjectName("primaryButton")
         self.manutencao_button.clicked.connect(self.abrir_manutencao_usuarios.emit)
         
-        # Configurar visibilidade dos botões baseado no perfil
-        self.configurar_botoes_por_perfil()
-        
+        # Botão Sair
         self.logout_button = QPushButton("Sair")
         self.logout_button.setObjectName("logoutButton")
         self.logout_button.clicked.connect(self.logout_request.emit)
         
-        header_layout.addWidget(welcome_label)
-        header_layout.addStretch()
-        header_layout.addWidget(self.cadastrar_button)
-        header_layout.addWidget(self.manutencao_button)
-        header_layout.addWidget(self.logout_button)
+        # Configurar visibilidade dos botões baseado no perfil
+        self.configurar_botoes_por_perfil()
+        
+        # Adicionar botões ao layout
+        botoes_layout.addWidget(self.cadastrar_button)
+        botoes_layout.addWidget(self.manutencao_button)
+        botoes_layout.addWidget(self.logout_button)
+        
+        # Adicionar tudo ao top_layout
+        top_layout.addLayout(logo_nome_layout)
+        top_layout.addStretch()
+        top_layout.addWidget(welcome_label)
+        top_layout.addStretch()
+        top_layout.addLayout(botoes_layout)
+        
+        # LINHA INFERIOR: Apenas as abas (sem botões)
+        # As abas serão adicionadas no layout principal depois
+        
+        # Adicionar top_layout ao header
+        header_layout.addLayout(top_layout)
         header.setLayout(header_layout)
         return header
+
     
     def configurar_botoes_por_perfil(self):
         """Configura a visibilidade dos botões baseado no perfil do usuário"""
@@ -468,7 +614,7 @@ class PropostasWindow(QWidget):
         layout.addWidget(title)
         layout.addLayout(input_layout)
         layout.addLayout(filtros_layout)
-        layout.addWidget(data_info_label)
+       # layout.addWidget(data_info_label)
         
         frame.setLayout(layout)
         return frame
@@ -631,19 +777,23 @@ class PropostasWindow(QWidget):
         frame = QFrame()
         frame.setObjectName("formFrame")
         layout = QVBoxLayout()
+        layout.setContentsMargins(8, 8, 8, 8)
+        layout.setSpacing(4)
         
         title = QLabel("Tarefas da Proposta - Marque as concluídas (✓)")
         title.setObjectName("subtitleLabel")
+        title.setStyleSheet("font-size: 12px;")
         
-        # Label para indicar que todas as tarefas devem ser concluídas
-        info_label = QLabel("⚠️ Todas as tarefas devem ser marcadas para liberar aprovação")
+        info_label = QLabel("⚠️ Todas as tarefas devem ser marcadas")
         info_label.setObjectName("warningLabel")
-        info_label.setStyleSheet("color: #ff9800; font-size: 12px;")
+        info_label.setStyleSheet("color: #ff9800; font-size: 10px;")
         
-        # Scroll area para tarefas
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
-        scroll.setFixedHeight(300)
+        
+        # ALTURA RESPONSIVA baseada no tamanho da janela
+        scroll.setMinimumHeight(100)
+        scroll.setMaximumHeight(200)
         
         tarefas_widget = QWidget()
         tarefas_layout = QGridLayout()
@@ -705,10 +855,38 @@ class PropostasWindow(QWidget):
         frame.setLayout(layout)
         return frame
 
+    def resizeEvent(self, event):
+        """Evento chamado quando a janela é redimensionada"""
+        super().resizeEvent(event)
+        
+        # Ajustar elementos quando a janela mudar de tamanho
+        if hasattr(self, 'tabs') and self.tabs.currentWidget():
+            # Ajustar altura da área de tarefas baseado no novo tamanho
+            current_tab_name = self.tabs.tabText(self.tabs.currentIndex())
+            if current_tab_name in ["Saque Fácil", "Refin", "Saque Direcionado"]:
+                self.ajustar_altura_tarefas(current_tab_name)
+
+    def ajustar_altura_tarefas(self, tipo_proposta):
+        """Ajusta a altura da área de tarefas baseado no tamanho da janela"""
+        # Encontra o scroll area de tarefas
+        tab_widget = self.tabs.currentWidget()
+        for i in range(tab_widget.layout().count()):
+            widget = tab_widget.layout().itemAt(i).widget()
+            if isinstance(widget, QFrame) and hasattr(widget, 'layout'):
+                for j in range(widget.layout().count()):
+                    sub_widget = widget.layout().itemAt(j).widget()
+                    if isinstance(sub_widget, QScrollArea):
+                        # Define altura como 25% da altura da janela, com limites
+                        altura = int(self.height() * 0.25)
+                        altura = max(100, min(altura, 300))  # Mín: 100, Máx: 300
+                        sub_widget.setFixedHeight(altura)
+                        break
     
     def criar_aba_historico(self):
         aba = QWidget()
         layout = QVBoxLayout()
+        layout.setContentsMargins(8, 8, 8, 8)
+        layout.setSpacing(5)
         
         title = QLabel("Histórico de Propostas")
         title.setObjectName("titleLabel")
@@ -716,13 +894,18 @@ class PropostasWindow(QWidget):
         # Frame de filtros
         filtros_frame = self.criar_filtros_historico()
         
-        # TABELA EXPANDIDA COM TIPO DE RECUSA
+        # TABELA com tamanho responsivo
         self.historico_table = QTableWidget()
-        self.historico_table.setColumnCount(12)  # Mantido 12 colunas
+        self.historico_table.setColumnCount(12)
         self.historico_table.setHorizontalHeaderLabels([
             "Tipo", "Número", "Analista", "Status", "Data Criação", "Data Conclusão", "Duração",
-            "Região", "Convênio", "Produto", "Status Produto", "Motivo de Recusa"  # NOVO NOME DA COLUNA
+            "Região", "Convênio", "Produto", "Status Produto", "Motivo de Recusa"
         ])
+        
+        # Header responsivo
+        header = self.historico_table.horizontalHeader()
+        header.setSectionResizeMode(QHeaderView.Interactive)  # Permite ajuste
+        header.setStretchLastSection(True)  # Estica a última seção
         self.historico_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         
         # 🔒 IMPEDIR EDIÇÃO DOS DADOS NA TABELA

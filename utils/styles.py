@@ -192,19 +192,35 @@ def get_propostas_styles():
         font-family: 'Segoe UI', Arial, sans-serif;
     }
     
-    #header {
+    /* Header Styles */
+    QFrame#header {
         background-color: white;
         padding: 15px;
         border-radius: 8px;
         border: 1px solid #dadce0;
+        border-bottom: 2px solid #3498db;
     }
     
-    #welcomeLabel {
+    QLabel#welcomeLabel {
+        font-size: 14px;
+        font-weight: bold;
+        color: #2c3e50;
+    }
+
+    QLabel#sistemaNome {
         font-size: 18px;
         font-weight: bold;
-        color: #1a73e8;
+        color: #2c3e50;
+        padding: 5px;
     }
     
+    QLabel#sistemaVersao {
+        font-size: 10px;
+        color: #7f8c8d;
+        font-weight: normal;
+    }
+    
+    /* Button Styles */
     #logoutButton {
         background-color: #dc3545;
         color: white;
@@ -218,6 +234,96 @@ def get_propostas_styles():
         background-color: #c82333;
     }
     
+    #primaryButton {
+        background-color: #1a73e8;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: bold;
+    }
+    
+    #primaryButton:hover {
+        background-color: #1669d6;
+    }
+    
+    #primaryButton:disabled {
+        background-color: #cccccc;
+        color: #666666;
+        border: 1px solid #aaaaaa;
+    }
+    
+    /* BOTÕES APROVAR E RECUSAR - ESTADO INATIVO */
+    #successButton:disabled {
+        background-color: #cccccc;
+        color: #666666;
+        border: 1px solid #aaaaaa;
+        padding: 12px 20px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: bold;
+    }
+    
+    #dangerButton:disabled {
+        background-color: #cccccc;
+        color: #666666;
+        border: 1px solid #aaaaaa;
+        padding: 12px 20px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: bold;
+    }
+    
+    /* BOTÕES APROVAR E RECUSAR - ESTADO ATIVO */
+    #successButton:enabled {
+        background-color: #28a745;
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: bold;
+    }
+    
+    #successButton:enabled:hover {
+        background-color: #218838;
+    }
+    
+    #dangerButton:enabled {
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: bold;
+    }
+    
+    #dangerButton:enabled:hover {
+        background-color: #c82333;
+    }
+    
+    #secondaryButton {
+        background-color: #6c757d;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+    
+    #secondaryButton:hover {
+        background-color: #5a6268;
+    }
+    
+    #secondaryButton:disabled {
+        background-color: #cccccc;
+        color: #666666;
+        border: 1px solid #aaaaaa;
+    }
+    
+    /* Form Styles */
     #formFrame {
         background-color: white;
         border-radius: 8px;
@@ -232,7 +338,14 @@ def get_propostas_styles():
         margin-bottom: 15px;
     }
     
-    #inputField, #comboBox {
+    #subtitleLabel {
+        font-size: 14px;
+        font-weight: bold;
+        color: #495057;
+        margin-bottom: 10px;
+    }
+    
+    #inputField {
         padding: 10px;
         border: 2px solid #dadce0;
         border-radius: 6px;
@@ -240,28 +353,78 @@ def get_propostas_styles():
         margin-bottom: 15px;
     }
     
-    #inputField:focus, #comboBox:focus {
+    #inputField:focus {
         border-color: #1a73e8;
     }
     
-    #primaryButton {
-        background-color: #1a73e8;
-        color: white;
-        border: none;
-        padding: 12px;
-        border-radius: 6px;
+    #comboField {
+        padding: 8px;
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        background-color: white;
         font-size: 14px;
+        min-width: 150px;
+    }
+    
+    #comboField:focus {
+        border-color: #1a73e8;
+    }
+    
+    #comboField:disabled {
+        background-color: #f5f5f5;
+        color: #999;
+    }
+    
+    /* Info and Warning Labels */
+    #infoLabel {
+        font-size: 12px;
+        color: #6c757d;
+        font-style: italic;
+    }
+    
+    .warningLabel {
+        color: #ff9800;
+        font-size: 12px;
         font-weight: bold;
+        padding: 5px;
+        background-color: #fff3e0;
+        border-radius: 3px;
     }
     
-    #primaryButton:hover {
-        background-color: #1669d6;
+    /* Checkbox Styles */
+    QCheckBox {
+        spacing: 8px;
+        font-size: 14px;
+        padding: 5px;
     }
     
-    #primaryButton:disabled {
-        background-color: #cccccc;
+    QCheckBox::indicator {
+        width: 18px;
+        height: 18px;
     }
     
+    QCheckBox::indicator:unchecked {
+        border: 2px solid #dadce0;
+        border-radius: 3px;
+        background-color: white;
+    }
+    
+    QCheckBox::indicator:checked {
+        border: 2px solid #1a73e8;
+        border-radius: 3px;
+        background-color: #1a73e8;
+    }
+    
+    QCheckBox:disabled {
+        color: #999999;
+    }
+    
+    QCheckBox::indicator:disabled {
+        border: 2px solid #cccccc;
+        background-color: #f5f5f5;
+    }
+    
+    /* Table Styles */
     QTableWidget {
         background-color: white;
         border: 1px solid #dadce0;
@@ -280,6 +443,7 @@ def get_propostas_styles():
         font-weight: bold;
     }
     
+    /* Tab Styles */
     QTabWidget::pane {
         border: 1px solid #dadce0;
         border-radius: 6px;
@@ -300,89 +464,8 @@ def get_propostas_styles():
         background-color: white;
         border-bottom: 2px solid #1a73e8;
     }
-
-
-    # ... outros estilos existentes ...
-
-    # Novos estilos para checkboxes e botões específicos
-    QCheckBox {
-        spacing: 8px;
-        font-size: 14px;
-        padding: 5px;
-    }
-
-    QCheckBox::indicator {
-        width: 18px;
-        height: 18px;
-    }
-
-    QCheckBox::indicator:unchecked {
-        border: 2px solid #dadce0;
-        border-radius: 3px;
-        background-color: white;
-    }
-
-    QCheckBox::indicator:checked {
-        border: 2px solid #1a73e8;
-        border-radius: 3px;
-        background-color: #1a73e8;
-    }
-
-    #successButton {
-        background-color: #28a745;
-        color: white;
-        border: none;
-        padding: 12px 20px;
-        border-radius: 6px;
-        font-size: 14px;
-        font-weight: bold;
-    }
-
-    #successButton:hover {
-        background-color: #218838;
-    }
-
-    #dangerButton {
-        background-color: #dc3545;
-        color: white;
-        border: none;
-        padding: 12px 20px;
-        border-radius: 6px;
-        font-size: 14px;
-        font-weight: bold;
-    }
-
-    #dangerButton:hover {
-        background-color: #c82333;
-    }
-
-    #secondaryButton {
-        background-color: #6c757d;
-        color: white;
-        border: none;
-        padding: 10px 15px;
-        border-radius: 6px;
-        font-size: 14px;
-    }
-
-    #secondaryButton:hover {
-        background-color: #5a6268;
-    }
-
-    #infoLabel {
-        font-size: 12px;
-        color: #6c757d;
-        font-style: italic;
-    }
-
-    #subtitleLabel {
-        font-size: 14px;
-        font-weight: bold;
-        color: #495057;
-        margin-bottom: 10px;
-    }
-
-        /* Novos estilos para a aba Histórico */
+    
+    /* Date Edit Styles */
     QDateEdit {
         padding: 8px;
         border: 2px solid #ddd;
@@ -400,6 +483,7 @@ def get_propostas_styles():
         border-left-style: solid;
     }
     
+    /* ComboBox Styles */
     QComboBox {
         padding: 8px;
         border: 2px solid #ddd;
@@ -425,14 +509,52 @@ def get_propostas_styles():
         selection-color: white;
     }
     
-    .warningLabel {
-        color: #ff9800;
-        font-size: 12px;
-        font-weight: bold;
-        padding: 5px;
-        background-color: #fff3e0;
-        border-radius: 3px;
+    /* Scroll Area */
+    QScrollArea {
+        border: 1px solid #dadce0;
+        border-radius: 6px;
+        background-color: white;
     }
-
+    
+    QScrollBar:vertical {
+        border: none;
+        background-color: #f8f9fa;
+        width: 12px;
+        margin: 0px;
+    }
+    
+    QScrollBar::handle:vertical {
+        background-color: #c1c1c1;
+        border-radius: 6px;
+        min-height: 20px;
+    }
+    
+    QScrollBar::handle:vertical:hover {
+        background-color: #a8a8a8;
+    }
+    
+    /* Group Box */
+    QGroupBox {
+        font-weight: bold;
+        border: 1px solid #dadce0;
+        border-radius: 6px;
+        margin-top: 10px;
+        padding-top: 10px;
+    }
+    
+    QGroupBox::title {
+        subcontrol-origin: margin;
+        subcontrol-position: top center;
+        padding: 0 8px;
+        background-color: white;
+    }
+    
+    /* User Info Label */
+    QLabel#userInfoLabel {
+        color: #2c3e50;
+        font-weight: bold;
+        padding: 5px 10px;
+        background-color: #ecf0f1;
+        border-radius: 4px;
+    }
     """
-

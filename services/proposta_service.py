@@ -3,6 +3,16 @@ from models.proposta_model import PropostaModel
 from PyQt5.QtCore import QObject, pyqtSignal
 from datetime import datetime, time
 from google.cloud.firestore_v1 import FieldFilter
+import sys
+import os
+
+def resource_path(relative_path):
+    """Get absolute path to resource, works for dev and for PyInstaller"""
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
 
 class PropostaService(QObject):
     proposta_criada = pyqtSignal(bool, str)
