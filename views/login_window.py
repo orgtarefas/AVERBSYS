@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
                              QLineEdit, QPushButton, QFrame, QMessageBox,
-                             QProgressBar, QDialog)  
-from PyQt5.QtCore import pyqtSignal, Qt
+                             QProgressBar, QDialog, QCheckBox)  
+from PyQt5.QtCore import pyqtSignal, Qt, QSettings
 from PyQt5.QtGui import QFont, QPixmap, QIcon
 from utils.styles import get_login_styles
 import sys
@@ -20,10 +20,13 @@ class LoginWindow(QWidget):
     
     def __init__(self):
         super().__init__()
+        self.settings = QSettings("AVERBSYS", "LoginApp")
         self.init_ui()
+        self.load_saved_credentials()
+
+        
     
     def init_ui(self):
-       # self.setWindowTitle("AVERBSYS")
         self.setStyleSheet(get_login_styles())
         
         # DEFINIR ÍCONE DA JANELA
@@ -80,10 +83,31 @@ class LoginWindow(QWidget):
         self.username_input.setPlaceholderText("Usuário")
         self.username_input.setObjectName("inputField")
         
+        # Layout para senha com botão de mostrar/ocultar
+        password_layout = QHBoxLayout()
+        password_layout.setSpacing(0)
+        
         self.password_input = QLineEdit()
         self.password_input.setPlaceholderText("Senha")
         self.password_input.setEchoMode(QLineEdit.Password)
         self.password_input.setObjectName("inputField")
+        
+        # Botão para mostrar/ocultar senha
+        self.toggle_password_button = QPushButton()
+        self.toggle_password_button.setObjectName("togglePasswordButton")
+        self.toggle_password_button.setFixedSize(30, 30)
+        self.toggle_password_button.setCursor(Qt.PointingHandCursor)
+        self.toggle_password_button.clicked.connect(self.toggle_password_visibility)
+        
+        # Definir ícone inicial (olho fechado)
+        self.update_toggle_password_icon()
+        
+        password_layout.addWidget(self.password_input)
+        password_layout.addWidget(self.toggle_password_button)
+        
+        # Checkbox para lembrar credenciais
+        self.remember_me_checkbox = QCheckBox("Lembrar usuário e senha")
+        self.remember_me_checkbox.setObjectName("rememberCheckbox")
         
         # Botões
         self.login_button = QPushButton("Entrar")
@@ -99,7 +123,8 @@ class LoginWindow(QWidget):
         form_layout.addWidget(QLabel("Usuário:"))
         form_layout.addWidget(self.username_input)
         form_layout.addWidget(QLabel("Senha:"))
-        form_layout.addWidget(self.password_input)
+        form_layout.addLayout(password_layout)
+        form_layout.addWidget(self.remember_me_checkbox)
         form_layout.addWidget(self.login_button)
         form_layout.addWidget(self.progress_bar)
         
@@ -139,9 +164,110 @@ class LoginWindow(QWidget):
         # === FIM DO BOTÃO "?" ===
         
         self.setLayout(layout)
-        self.resize(400, 550)
+        self.resize(400, 600)  # Aumentei um pouco a altura para acomodar os novos elementos
         self.center_window()
 
+    def toggle_password_visibility(self):
+        """Alterna entre mostrar e ocultar a senha"""
+        if self.password_input.echoMode() == QLineEdit.Password:
+            self.password_input.setEchoMode(QLineEdit.Normal)
+        else:
+            self.password_input.setEchoMode(QLineEdit.Password)
+        
+        self.update_toggle_password_icon()
+
+    def update_toggle_password_icon(self):
+        """Atualiza o ícone do botão de mostrar/ocultar senha"""
+        if self.password_input.echoMode() == QLineEdit.Password:
+            # Ícone de olho (senha oculta)
+            try:
+                icon_path = resource_path('assets/eye_closed.png')
+                if os.path.exists(icon_path):
+                    pixmap = QPixmap(icon_path)
+                    pixmap = pixmap.scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                    self.toggle_password_button.setIcon(QIcon(pixmap))
+                else:
+                    self.toggle_password_button.setText("👁")
+            except:
+                self.toggle_password_button.setText("👁")
+        else:
+            # Ícone de olho riscado (senha visível)
+            try:
+                icon_path = resource_path('assets/eye_open.png')
+                if os.path.exists(icon_path):
+                    pixmap = QPixmap(icon_path)
+                    pixmap = pixmap.scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                    self.toggle_password_button.setIcon(QIcon(pixmap))
+                else:
+                    self.toggle_password_button.setText("👁‍🗨")
+            except:
+                self.toggle_password_button.setText("👁‍🗨")
+
+    def load_saved_credentials(self):
+        """Carrega usuário e senha salvos se 'Lembrar' estiver ativo"""
+        remember_me = self.settings.value("remember_me", False, type=bool)
+        
+        if remember_me:
+            # ⭐ CARREGA USUÁRIO E SENHA
+            username = self.settings.value("username", "")
+            password = self.settings.value("password", "")  # ⭐ CARREGA SENHA
+            
+            self.username_input.setText(username)
+            self.password_input.setText(password)
+            self.remember_me_checkbox.setChecked(True)
+        else:
+            # ⭐ DESMARCADO: LIMPA TUDO
+            self.username_input.clear()
+            self.password_input.clear()
+            self.remember_me_checkbox.setChecked(False)
+        
+        # Mantém o foco no campo apropriado
+        if self.username_input.text():
+            self.password_input.setFocus()
+        else:
+            self.username_input.setFocus()
+
+    def save_credentials(self):
+        """Salva ou remove as credenciais baseado no checkbox"""
+        if self.remember_me_checkbox.isChecked():
+            # ⭐ SALVA USUÁRIO E SENHA se estiver marcado
+            self.settings.setValue("remember_me", True)
+            self.settings.setValue("username", self.username_input.text())
+            self.settings.setValue("password", self.password_input.text())  # ⭐ SALVA SENHA
+        else:
+            # ⭐ DESMARCADO: REMOVE TUDO
+            self.settings.setValue("remember_me", False)
+            self.settings.remove("username")
+            self.settings.remove("password")
+        
+        # Force salvar imediatamente
+        self.settings.sync()
+
+    def attempt_login(self):
+        username = self.username_input.text().strip()
+        password = self.password_input.text().strip()
+        
+        # ⭐⭐ CORREÇÃO: Validação mais robusta
+        if not username:
+            self.show_error("Por favor, informe o usuário")
+            self.username_input.setFocus()
+            return
+            
+        if not password:
+            self.show_error("Por favor, informe a senha")
+            self.password_input.setFocus()
+            return
+        
+        if len(username) < 3:
+            self.show_error("Usuário deve ter pelo menos 3 caracteres")
+            self.username_input.setFocus()
+            return
+        
+        # Salva as credenciais antes de tentar o login
+        self.save_credentials()
+        
+        self.set_loading(True)
+        self.login_attempt.emit(username, password)
 
     def center_window(self):
         """Centraliza a janela na tela"""
@@ -151,7 +277,6 @@ class LoginWindow(QWidget):
             (screen.width() - size.width()) // 2,
             (screen.height() - size.height()) // 2
         )        
-
 
     def mostrar_informacoes(self):
         """Mostra informações do sistema"""
@@ -238,23 +363,9 @@ class LoginWindow(QWidget):
                 
         dialog.setLayout(layout)
         dialog.exec_()
-
-    
-    
-    def attempt_login(self):
-        username = self.username_input.text().strip()
-        password = self.password_input.text().strip()
-        
-        if not username or not password:
-            self.show_error("Por favor, preencha todos os campos")
-            return
-        
-        self.set_loading(True)
-        self.login_attempt.emit(username, password)
     
     def set_loading(self, loading):
         self.login_button.setEnabled(not loading)
-        # REMOVER: self.register_button.setEnabled(not loading)
         self.progress_bar.setVisible(loading)
     
     def show_error(self, message):

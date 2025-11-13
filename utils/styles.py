@@ -65,6 +65,52 @@ def get_login_styles():
     QPushButton#sobreButton:hover {
         opacity: 0.7;
     }
+
+    /* Estilo para o botão de mostrar/ocultar senha */
+    QPushButton#togglePasswordButton {
+        background-color: transparent;
+        border: none;
+        padding: 5px;
+        margin-left: 2px;
+    }
+    
+    QPushButton#togglePasswordButton:hover {
+        background-color: #f0f0f0;
+        border-radius: 3px;
+    }
+    
+    QPushButton#togglePasswordButton:pressed {
+        background-color: #e0e0e0;
+    }
+    
+    /* Estilo para o checkbox de lembrar senha */
+    QCheckBox#rememberCheckbox {
+        color: #555555;
+        font-size: 12px;
+        spacing: 5px;
+    }
+    
+    QCheckBox#rememberCheckbox::indicator {
+        width: 16px;
+        height: 16px;
+    }
+    
+    QCheckBox#rememberCheckbox::indicator:unchecked {
+        border: 1px solid #cccccc;
+        background-color: white;
+        border-radius: 2px;
+    }
+    
+    QCheckBox#rememberCheckbox::indicator:checked {
+        border: 1px solid #3498db;
+        background-color: #3498db;
+        border-radius: 2px;
+        image: url(assets/checkmark.png);
+    }
+    
+    QCheckBox#rememberCheckbox::indicator:unchecked:hover {
+        border: 1px solid #3498db;
+    }
     """
 
 def get_home_styles():

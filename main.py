@@ -62,22 +62,31 @@ def main():
     QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
     
     app = QApplication(sys.argv)
-    app.setApplicationName(" ")
+    app.setApplicationName("AVERBSYS")
     
     try:
         # Verificar validade do sistema antes de iniciar
         if not verificar_validade_sistema():
             sys.exit(1)
         
-        # Criar controller principal
-        from controllers.auth_controller import AuthController
-        auth_controller = AuthController()
-        auth_controller.show_login()
+        # ⭐⭐ CORREÇÃO: Criar controller com tratamento de erro
+        try:
+            from controllers.auth_controller import AuthController
+            auth_controller = AuthController()
+            auth_controller.show_login()
+        except ImportError as e:
+            QMessageBox.critical(None, "Erro de Importação", 
+                               f"Erro ao carregar módulos: {str(e)}\n\n"
+                               "Verifique se todos os arquivos estão presentes.")
+            sys.exit(1)
         
         sys.exit(app.exec_())
         
     except Exception as e:
         print(f"Error starting application: {e}")
+        traceback.print_exc()
+        QMessageBox.critical(None, "Erro Inesperado", 
+                           f"Erro ao iniciar aplicação: {str(e)}")
         sys.exit(1)
 
 if __name__ == "__main__":
