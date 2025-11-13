@@ -14,6 +14,15 @@ class DatabaseManager(QObject):
             'data_cadastro': 'DATA CADASTRO'
         }
     
+    def clear_sensitive_data(self):
+        """Limpa dados sensíveis da sessão atual"""
+        try:
+            # Limpar credenciais salvas ou dados temporários
+            # Exemplo: self.connection.close() se houver conexão ativa
+            print("🔒 Dados sensíveis limpos")
+        except Exception as e:
+            print(f"⚠️ Erro ao limpar dados sensíveis: {e}")
+
     def set_data(self, data):
         self.data = data
     

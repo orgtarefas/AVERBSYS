@@ -38,7 +38,54 @@ class MotivoRecusaDialog(QDialog):
         self.setModal(True)
         self.resize(400, 500)
         self.init_ui()
+    
+    def init_ui(self):
+        layout = QVBoxLayout()
         
+        # Título
+        title = QLabel("Selecione o motivo da recusa:")
+        title.setStyleSheet("font-size: 14px; font-weight: bold; margin-bottom: 10px;")
+        layout.addWidget(title)
+        
+        # Lista de motivos
+        self.list_widget = QListWidget()
+        self.list_widget.setStyleSheet("""
+            QListWidget {
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                padding: 5px;
+                background-color: white;
+            }
+            QListWidget::item {
+                padding: 8px;
+                border-bottom: 1px solid #eee;
+            }
+            QListWidget::item:selected {
+                background-color: #e3f2fd;
+                color: #1976d2;
+                border: 1px solid #1976d2;
+                border-radius: 3px;
+            }
+        """)
+        
+        # Adicionar motivos à lista usando a função do arquivo utils
+        motivos = get_motivos_recusa()
+        for motivo_id, descricao in motivos:
+            item = QListWidgetItem(f"{motivo_id} - {descricao}")
+            item.setData(Qt.UserRole, (motivo_id, descricao))
+            self.list_widget.addItem(item)
+        
+        self.list_widget.itemDoubleClicked.connect(self.on_item_double_clicked)
+        layout.addWidget(self.list_widget)
+        
+        # Botões
+        button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        button_box.accepted.connect(self.on_accept)
+        button_box.rejected.connect(self.reject)
+        
+        layout.addWidget(button_box)
+        self.setLayout(layout)
+    
     def on_item_double_clicked(self, item):
         """Quando o usuário clica duas vezes em um item"""
         self.on_accept()
@@ -499,21 +546,27 @@ class PropostasWindow(QWidget):
         
         # CONFIGURAÇÃO POR TIPO DE PROPOSTA
         if tipo_proposta == "Solicitação Interna":
-            placeholder = "Digite o contrato (00-1234567890 ou A00-1234567890)"
+            placeholder = "ex: A00-1234567890 ou 00-1234567890"
             max_length = 14
             texto_inicial = ""
             label_text = "Nº Contrato:"
         else:
-            placeholder = "Digite o número do contrato (ex: 50-1234567890)"
+            placeholder = "ex: 50-1234567890"
             max_length = 13
             texto_inicial = ""
             label_text = "Nº Contrato:"
-        
+
         numero_input = QLineEdit()
         numero_input.setPlaceholderText(placeholder)
         numero_input.setObjectName("inputField")
         numero_input.setMaxLength(max_length)
         numero_input.setText(texto_inicial)
+        numero_input.setFixedWidth(200)  # ⭐⭐ AUMENTADO PARA 200
+        numero_input.setStyleSheet("""
+            QLineEdit {
+                font-size: 10px;  /* ⭐⭐ FONTE MENOR PARA PLACEHOLDER */
+            }
+        """)
         
         numero_input.textChanged.connect(lambda text: self.validar_formato_contrato(text, tipo_proposta))
         
@@ -546,36 +599,38 @@ class PropostasWindow(QWidget):
         
         input_layout.addWidget(analista_label)
         
-        # ⭐⭐ BOTÕES DO SISTEMA (Cadastrar, Manutenção, Sair) - APENAS NA PRIMEIRA ABA
-        if tipo_proposta == "Saque Fácil":  # Apenas na primeira aba para evitar duplicação
+        # ⭐⭐ BOTÕES DO SISTEMA (Cadastrar, Manutenção, Sair) - EM TODAS AS ABAS EXCETO HISTÓRICO
+        if tipo_proposta != "Histórico":  # ⭐⭐ AGORA EM TODAS AS ABAS EXCETO HISTÓRICO
             # Botão Cadastrar Usuário (apenas para Dev)
-            self.cadastrar_button = QPushButton("Cadastrar")
-            self.cadastrar_button.setObjectName("primaryButton")
-            self.cadastrar_button.clicked.connect(self.cadastrar_usuario)
-            self.cadastrar_button.setFixedWidth(120)
-            self.cadastrar_button.setFixedHeight(28)
+            cadastrar_button = QPushButton("Cadastrar")
+            cadastrar_button.setObjectName("primaryButton")
+            cadastrar_button.clicked.connect(self.cadastrar_usuario)
+            cadastrar_button.setFixedWidth(120)
+            cadastrar_button.setFixedHeight(28)
             
             # Botão Manutenção de Usuários (apenas para Gerente e Dev)
-            self.manutencao_button = QPushButton("Manutenção")
-            self.manutencao_button.setObjectName("primaryButton")
-            self.manutencao_button.clicked.connect(self.abrir_manutencao_usuarios.emit)
-            self.manutencao_button.setFixedWidth(120)
-            self.manutencao_button.setFixedHeight(28)
+            manutencao_button = QPushButton("Manutenção")
+            manutencao_button.setObjectName("primaryButton")
+            manutencao_button.clicked.connect(self.abrir_manutencao_usuarios.emit)
+            manutencao_button.setFixedWidth(120)
+            manutencao_button.setFixedHeight(28)
             
             # Botão Sair
-            self.logout_button = QPushButton("Sair")
-            self.logout_button.setObjectName("logoutButton")
-            self.logout_button.clicked.connect(self.logout_request.emit)
-            self.logout_button.setFixedWidth(70)
-            self.logout_button.setFixedHeight(28)
+            logout_button = QPushButton("Sair")
+            logout_button.setObjectName("logoutButton")
+            logout_button.clicked.connect(self.logout_request.emit)
+            logout_button.setFixedWidth(70)
+            logout_button.setFixedHeight(28)
             
             # Configurar visibilidade dos botões baseado no perfil
-            self.configurar_botoes_por_perfil()
+            if self.user_data['perfil'] == 'Analista':
+                cadastrar_button.setVisible(False)
+                manutencao_button.setVisible(False)
             
             # Adicionar botões ao layout
-            input_layout.addWidget(self.cadastrar_button)
-            input_layout.addWidget(self.manutencao_button)
-            input_layout.addWidget(self.logout_button)
+            input_layout.addWidget(cadastrar_button)
+            input_layout.addWidget(manutencao_button)
+            input_layout.addWidget(logout_button)
         
         # LINHA 1: Filtros Google Sheets (Região, Convênio, Produto, Status)
         linha1_layout = QHBoxLayout()
