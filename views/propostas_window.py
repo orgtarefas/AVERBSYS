@@ -38,54 +38,7 @@ class MotivoRecusaDialog(QDialog):
         self.setModal(True)
         self.resize(400, 500)
         self.init_ui()
-    
-    def init_ui(self):
-        layout = QVBoxLayout()
         
-        # Título
-        title = QLabel("Selecione o motivo da recusa:")
-        title.setStyleSheet("font-size: 14px; font-weight: bold; margin-bottom: 10px;")
-        layout.addWidget(title)
-        
-        # Lista de motivos
-        self.list_widget = QListWidget()
-        self.list_widget.setStyleSheet("""
-            QListWidget {
-                border: 1px solid #ccc;
-                border-radius: 4px;
-                padding: 5px;
-                background-color: white;
-            }
-            QListWidget::item {
-                padding: 8px;
-                border-bottom: 1px solid #eee;
-            }
-            QListWidget::item:selected {
-                background-color: #e3f2fd;
-                color: #1976d2;
-                border: 1px solid #1976d2;
-                border-radius: 3px;
-            }
-        """)
-        
-        # Adicionar motivos à lista usando a função do arquivo utils
-        motivos = get_motivos_recusa()
-        for motivo_id, descricao in motivos:
-            item = QListWidgetItem(f"{motivo_id} - {descricao}")
-            item.setData(Qt.UserRole, (motivo_id, descricao))
-            self.list_widget.addItem(item)
-        
-        self.list_widget.itemDoubleClicked.connect(self.on_item_double_clicked)
-        layout.addWidget(self.list_widget)
-        
-        # Botões
-        button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        button_box.accepted.connect(self.on_accept)
-        button_box.rejected.connect(self.reject)
-        
-        layout.addWidget(button_box)
-        self.setLayout(layout)
-    
     def on_item_double_clicked(self, item):
         """Quando o usuário clica duas vezes em um item"""
         self.on_accept()
@@ -246,8 +199,6 @@ class PropostasWindow(QWidget):
         self.init_ui()
     
 
-
-
     def init_ui(self):
         # DEFINIR ÍCONE DA JANELA
         try:
@@ -255,73 +206,39 @@ class PropostasWindow(QWidget):
         except:
             print("Logo não encontrada. Verifique o caminho: assets/logo.png")
 
-
-
-
         self.setWindowTitle("AVERBSYS")
         self.setStyleSheet(get_propostas_styles())
         
         layout = QVBoxLayout()
-        layout.setContentsMargins(5, 5, 5, 5)
-        layout.setSpacing(5)
+        layout.setContentsMargins(4, 4, 4, 4)
+        layout.setSpacing(4)
         
-        # LINHA 1: AVERBSYS + User info + Botões
-        header_layout = QHBoxLayout()
-        
-        
-        # User info + Botões (LADO DIREITO)
-        user_controls_layout = QHBoxLayout()
-        user_controls_layout.setSpacing(5)
-        
-        # Informações do usuário
-        user_info_label = QLabel(f"{self.user_data['nome_completo']} - {self.user_data['perfil']}")
-        user_info_label.setObjectName("userInfoLabel")
-        user_info_label.setStyleSheet("""
-            QLabel {
-                color: #2c3e50;
-                font-weight: bold;
-                padding: 5px 10px;
-                background-color: #ecf0f1;
-                border-radius: 4px;
-            }
-        """)
-        
-        # Botão Cadastrar Usuário (apenas para Dev)
-        self.cadastrar_button = QPushButton("Cadastrar")
-        self.cadastrar_button.setObjectName("primaryButton")
-        self.cadastrar_button.clicked.connect(self.cadastrar_usuario)
-        self.cadastrar_button.setFixedWidth(120)
-        
-        # Botão Manutenção de Usuários (apenas para Gerente e Dev)
-        self.manutencao_button = QPushButton("Manutenção")
-        self.manutencao_button.setObjectName("primaryButton")
-        self.manutencao_button.clicked.connect(self.abrir_manutencao_usuarios.emit)
-        self.manutencao_button.setFixedWidth(120)
-        
-        # Botão Sair
-        self.logout_button = QPushButton("Sair")
-        self.logout_button.setObjectName("logoutButton")
-        self.logout_button.clicked.connect(self.logout_request.emit)
-        self.logout_button.setFixedWidth(80)
-        
-        # Configurar visibilidade dos botões baseado no perfil
-        self.configurar_botoes_por_perfil()
-        
-        # Adicionar controles ao layout
-        user_controls_layout.addWidget(user_info_label)
-        user_controls_layout.addWidget(self.cadastrar_button)
-        user_controls_layout.addWidget(self.manutencao_button)
-        user_controls_layout.addWidget(self.logout_button)
-        
-        # Adicionar ao header
-        header_layout.addStretch()
-        header_layout.addLayout(user_controls_layout)
         
         # LINHA 2: Tabs principais
         self.tabs = QTabWidget()
         self.tabs.currentChanged.connect(self.aba_mudou)
+        self.tabs.setStyleSheet("""
+            QTabWidget::pane {
+                border: 1px solid #C2C7CB;
+                background-color: white;
+            }
+            QTabBar::tab {
+                background-color: #E1E1E1;
+                border: 1px solid #C4C4C3;
+                padding: 6px 12px;
+                margin-right: 2px;
+                font-size: 11px;
+            }
+            QTabBar::tab:selected {
+                background-color: #FFFFFF;
+                border-bottom-color: #FFFFFF;
+            }
+            QTabBar::tab:!selected {
+                margin-top: 2px;
+            }
+        """)
         
-        # Criar as 3 abas específicas
+        # Criar as abas específicas
         self.tab_saque_facil = self.criar_aba_proposta("Saque Fácil")
         self.tab_refin = self.criar_aba_proposta("Refin") 
         self.tab_saque_direcionado = self.criar_aba_proposta("Saque Direcionado")
@@ -341,21 +258,20 @@ class PropostasWindow(QWidget):
         self.proposta_service.proposta_criada.connect(self.on_proposta_criada)
         
         # Adicionar ao layout principal
-        layout.addLayout(header_layout)
-        layout.addWidget(self.tabs)
+        layout.addWidget(self.tabs)  # ⭐⭐ AGORA SÓ AS TABS
         
         self.setLayout(layout)
-       # self.resize(900, 400)
-   
-        # TAMANHO RESPONSIVO baseado na tela
+
+        # ⭐⭐ TAMANHO RESPONSIVO OTIMIZADO PARA 1366x768
         self.ajustar_tamanho_responsivo()
         
         # Centralizar na tela
         self.center_window()    
-        
+            
         # Carregar dados iniciais
         self.carregar_historico()
         self.carregar_filtros_iniciais()
+
 
 
     def center_window(self):
@@ -367,18 +283,34 @@ class PropostasWindow(QWidget):
         )
 
     def ajustar_tamanho_responsivo(self):
-        """Ajusta o tamanho da janela baseado no tamanho da tela"""
+        """Ajusta o tamanho da janela baseado no tamanho da tela - OTIMIZADO PARA 1366x768"""
         screen = self.screen().availableGeometry()
         
-        # Usar porcentagem da tela (80% da largura, 70% da altura)
-        width = int(screen.width() * 0.8)
-        height = int(screen.height() * 0.7)
+        # ⭐⭐ OTIMIZADO PARA 1366x768 - ALTURA REDUZIDA
+        if screen.width() <= 1366:
+            # Modo compacto para telas pequenas
+            width = int(screen.width() * 0.95)  # 95% da largura
+            height = int(screen.height() * 0.85)  # ⭐⭐ REDUZIDO de 0.9 para 0.85
+            
+            # Limites específicos para 1366x768
+            width = min(width, 1300)
+            height = min(height, 650)  # ⭐⭐ REDUZIDO de 700 para 650
+            
+            # Mínimos para usabilidade
+            width = max(width, 1000)
+            height = max(height, 550)  # ⭐⭐ REDUZIDO de 600 para 550
+        else:
+            # Modo normal para telas maiores
+            width = int(screen.width() * 0.85)
+            height = int(screen.height() * 0.75)  # ⭐⭐ REDUZIDO de 0.8 para 0.75
+            
+            width = max(1000, min(width, 1400))
+            height = max(550, min(height, 700))  # ⭐⭐ REDUZIDO de 600/800 para 550/700
         
-        # Limites mínimos e máximos
-        width = max(900, min(width, 1400))   # Mín: 900, Máx: 1400
-        height = max(500, min(height, 800))  # Mín: 500, Máx: 800
+        print(f"🖥️  Tela: {screen.width()}x{screen.height()}")
+        print(f"📐 Ajustando janela para: {width}x{height}")
         
-        self.resize(width, height)        
+        self.resize(width, height)
 
     
     def carregar_filtros_iniciais(self):
@@ -452,21 +384,7 @@ class PropostasWindow(QWidget):
         nome_versao_layout = QVBoxLayout()
         nome_versao_layout.setSpacing(0)
         
-        #nome_label = QLabel("AVERBSYS")
-        #nome_label.setObjectName("sistemaNome")
-        
-        #versao_label = QLabel("v0.1")
-        #versao_label.setObjectName("sistemaVersao")
-        
-        #nome_versao_layout.addWidget(nome_label)
-        #nome_versao_layout.addWidget(versao_label)
-        
-        #logo_nome_layout.addLayout(nome_versao_layout)
         logo_nome_layout.addStretch()
-        
-        # Welcome label no centro
-        welcome_label = QLabel(f"Analista: {self.user_data['nome_completo']} - {self.user_data['perfil']}")
-        welcome_label.setObjectName("welcomeLabel")
         
         # Botões no lado direito
         botoes_layout = QHBoxLayout()
@@ -497,8 +415,6 @@ class PropostasWindow(QWidget):
         
         # Adicionar tudo ao top_layout
         top_layout.addLayout(logo_nome_layout)
-        top_layout.addStretch()
-        top_layout.addWidget(welcome_label)
         top_layout.addStretch()
         top_layout.addLayout(botoes_layout)
         
@@ -545,11 +461,12 @@ class PropostasWindow(QWidget):
         """Abre a tela de cadastro de usuário"""
         self.abrir_cadastro_usuario.emit()
     
+
     def criar_aba_proposta(self, tipo_proposta):
         aba = QWidget()
         layout = QVBoxLayout()
-        layout.setContentsMargins(5, 5, 5, 5)  # ⭐⭐ MESMAS MARGENS PARA TODAS
-        layout.setSpacing(5)  # ⭐⭐ MESMO ESPAÇAMENTO PARA TODAS
+        layout.setContentsMargins(5, 5, 5, 5)  
+        layout.setSpacing(3)  # ⭐⭐ REDUZIDO ESPAÇAMENTO GERAL (5 -> 3)
         
         # Área de entrada da proposta
         input_frame = self.criar_area_input(tipo_proposta)
@@ -567,19 +484,16 @@ class PropostasWindow(QWidget):
         
         aba.setLayout(layout)
         return aba
-    
+        
 
     def criar_area_input(self, tipo_proposta):
         frame = QFrame()
         frame.setObjectName("formFrame")
         layout = QVBoxLayout()
-        layout.setContentsMargins(8, 8, 8, 8)  # ⭐⭐ REDUZIR MARGENS GERAIS
-        layout.setSpacing(5)  # ⭐⭐ REDUZIR ESPAÇAMENTO GERAL
+        layout.setContentsMargins(8, 6, 8, 6)  # ⭐⭐ REDUZIDO verticalmente (8,8,8,8 -> 8,6,8,6)
+        layout.setSpacing(4)  # ⭐⭐ REDUZIDO (5 -> 4)
         
-        title = QLabel(f"{tipo_proposta}")
-        title.setObjectName("titleLabel")
-        
-        # Layout horizontal para número e botão limpar
+        # Layout horizontal para número, botão limpar, analista E botões do sistema
         input_layout = QHBoxLayout()
         input_layout.setSpacing(5)
         
@@ -609,9 +523,59 @@ class PropostasWindow(QWidget):
         limpar_button.setObjectName("secondaryButton")
         limpar_button.clicked.connect(lambda: self.limpar_proposta(tipo_proposta))
         
+        # ⭐⭐ ADICIONAR NOME DO ANALISTA
         input_layout.addWidget(QLabel(label_text))
         input_layout.addWidget(numero_input)
         input_layout.addWidget(limpar_button)
+        input_layout.addStretch()  # ⭐⭐ PRIMEIRO STRETCH - empurra o analista para a direita
+        
+        analista_label = QLabel(f"{self.user_data['nome_completo']} - {self.user_data['perfil']}")
+        analista_label.setStyleSheet("""
+            QLabel {
+                color: #2c3e50;
+                font-weight: bold;
+                font-size: 11px;
+                padding: 4px 12px;
+                background-color: #ecf0f1;
+                border-radius: 3px;
+                margin-left: 20px;
+            }
+        """)
+        analista_label.setFixedHeight(28)
+        analista_label.setAlignment(Qt.AlignCenter)
+        
+        input_layout.addWidget(analista_label)
+        
+        # ⭐⭐ BOTÕES DO SISTEMA (Cadastrar, Manutenção, Sair) - APENAS NA PRIMEIRA ABA
+        if tipo_proposta == "Saque Fácil":  # Apenas na primeira aba para evitar duplicação
+            # Botão Cadastrar Usuário (apenas para Dev)
+            self.cadastrar_button = QPushButton("Cadastrar")
+            self.cadastrar_button.setObjectName("primaryButton")
+            self.cadastrar_button.clicked.connect(self.cadastrar_usuario)
+            self.cadastrar_button.setFixedWidth(120)
+            self.cadastrar_button.setFixedHeight(28)
+            
+            # Botão Manutenção de Usuários (apenas para Gerente e Dev)
+            self.manutencao_button = QPushButton("Manutenção")
+            self.manutencao_button.setObjectName("primaryButton")
+            self.manutencao_button.clicked.connect(self.abrir_manutencao_usuarios.emit)
+            self.manutencao_button.setFixedWidth(120)
+            self.manutencao_button.setFixedHeight(28)
+            
+            # Botão Sair
+            self.logout_button = QPushButton("Sair")
+            self.logout_button.setObjectName("logoutButton")
+            self.logout_button.clicked.connect(self.logout_request.emit)
+            self.logout_button.setFixedWidth(70)
+            self.logout_button.setFixedHeight(28)
+            
+            # Configurar visibilidade dos botões baseado no perfil
+            self.configurar_botoes_por_perfil()
+            
+            # Adicionar botões ao layout
+            input_layout.addWidget(self.cadastrar_button)
+            input_layout.addWidget(self.manutencao_button)
+            input_layout.addWidget(self.logout_button)
         
         # LINHA 1: Filtros Google Sheets (Região, Convênio, Produto, Status)
         linha1_layout = QHBoxLayout()
@@ -703,6 +667,21 @@ class PropostasWindow(QWidget):
         self.valor_inputs[tipo_proposta] = valor_input
         valor_layout.addWidget(valor_input)
         linha2_layout.addLayout(valor_layout)
+
+        # ⭐⭐ VALOR DE TROCO (apenas para Refin e Solicitação Interna) - LARGURA FIXA
+        if tipo_proposta in ["Refin", "Solicitação Interna"]:
+            troco_layout = QVBoxLayout()
+            troco_layout.setSpacing(2)
+            troco_layout.addWidget(QLabel("Valor de Troco:"))
+            troco_input = QLineEdit()
+            troco_input.setPlaceholderText("0,00")
+            troco_input.setObjectName("inputField")
+            troco_input.setFixedWidth(100)  # ⭐⭐ LARGURA FIXA
+            troco_input.textChanged.connect(self.formatar_valor)
+            self.troco_inputs = getattr(self, 'troco_inputs', {})
+            self.troco_inputs[tipo_proposta] = troco_input
+            troco_layout.addWidget(troco_input)
+            linha2_layout.addLayout(troco_layout)
         
         # Prazo - LARGURA FIXA
         prazo_layout = QVBoxLayout()
@@ -725,6 +704,7 @@ class PropostasWindow(QWidget):
         observacoes_input = QLineEdit()
         observacoes_input.setPlaceholderText("Digite observações adicionais...")
         observacoes_input.setObjectName("inputField")
+
         # ⭐⭐ OBSERVAÇÕES EXPANSÍVEL - preenche o espaço restante
         observacoes_input.setMinimumWidth(250)
         observacoes_input.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
@@ -733,21 +713,6 @@ class PropostasWindow(QWidget):
         observacoes_layout.addWidget(observacoes_input)
         linha2_layout.addLayout(observacoes_layout)
         
-        # ⭐⭐ VALOR DE TROCO (apenas para Refin e Solicitação Interna) - LARGURA FIXA
-        if tipo_proposta in ["Refin", "Solicitação Interna"]:
-            troco_layout = QVBoxLayout()
-            troco_layout.setSpacing(2)
-            troco_layout.addWidget(QLabel("Valor de Troco:"))
-            troco_input = QLineEdit()
-            troco_input.setPlaceholderText("0,00")
-            troco_input.setObjectName("inputField")
-            troco_input.setFixedWidth(100)  # ⭐⭐ LARGURA FIXA
-            troco_input.textChanged.connect(self.formatar_valor)
-            self.troco_inputs = getattr(self, 'troco_inputs', {})
-            self.troco_inputs[tipo_proposta] = troco_input
-            troco_layout.addWidget(troco_input)
-            linha2_layout.addLayout(troco_layout)
-        
         # Info data/hora criação
         data_info_label = QLabel("Data/Hora Criação: --/--/-- --:--:--")
         data_info_label.setObjectName("infoLabel")
@@ -755,14 +720,12 @@ class PropostasWindow(QWidget):
         self.data_info_labels = getattr(self, 'data_info_labels', {})
         self.data_info_labels[tipo_proposta] = data_info_label
         
-        layout.addWidget(title)
         layout.addLayout(input_layout)
         layout.addLayout(linha1_layout)
         layout.addLayout(linha2_layout)
         
         frame.setLayout(layout)
         return frame
-
         
     def formatar_cpf(self, text):
         """Formata o CPF enquanto o usuário digita"""
@@ -1224,20 +1187,12 @@ class PropostasWindow(QWidget):
         layout.setContentsMargins(8, 8, 8, 8)
         layout.setSpacing(4)
         
-        title = QLabel("Tarefas do Contrato - Marque as concluídas (✓)")
-        title.setObjectName("subtitleLabel")
-        title.setStyleSheet("font-size: 12px;")
-        
-        info_label = QLabel("⚠️ Todas as tarefas devem ser marcadas")
-        info_label.setObjectName("warningLabel")
-        info_label.setStyleSheet("color: #ff9800; font-size: 10px;")
-        
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         
-        # ALTURA RESPONSIVA baseada no tamanho da janela
-        scroll.setMinimumHeight(100)
-        scroll.setMaximumHeight(200)
+        # ⭐⭐ ALTURA REDUZIDA - ajustada para telas menores
+        scroll.setMinimumHeight(80)  # Reduzido de 100 para 80
+        scroll.setMaximumHeight(150)  # Reduzido de 200 para 150
         
         tarefas_widget = QWidget()
         tarefas_layout = QGridLayout()
@@ -1265,20 +1220,18 @@ class PropostasWindow(QWidget):
         tarefas_widget.setLayout(tarefas_layout)
         scroll.setWidget(tarefas_widget)
         
-        layout.addWidget(title)
-        layout.addWidget(info_label)
         layout.addWidget(scroll)
         
         frame.setLayout(layout)
         return frame
-    
+
 
     def criar_area_acoes(self, tipo_proposta):
         frame = QFrame()
         frame.setObjectName("formFrame")
         layout = QHBoxLayout()
-        layout.setContentsMargins(8, 8, 8, 8)  # ⭐⭐ REDUZIR MARGENS
-        layout.setSpacing(8)  # ⭐⭐ REDUZIR ESPAÇAMENTO
+        layout.setContentsMargins(8, 4, 8, 4)  # ⭐⭐ REDUZIDO verticalmente (8,8,8,8 -> 8,4,8,4)
+        layout.setSpacing(6)  # ⭐⭐ REDUZIDO ESPAÇAMENTO (8 -> 6)
         
         aprovar_button = QPushButton("✅ Aprovar Contrato")
         aprovar_button.setObjectName("successButton")
@@ -1300,6 +1253,7 @@ class PropostasWindow(QWidget):
         
         frame.setLayout(layout)
         return frame
+
 
     def resizeEvent(self, event):
         """Evento chamado quando a janela é redimensionada"""
@@ -1334,8 +1288,6 @@ class PropostasWindow(QWidget):
         layout.setContentsMargins(8, 8, 8, 8)
         layout.setSpacing(5)
         
-        title = QLabel("Histórico de Contratos")
-        title.setObjectName("titleLabel")
         
         # Frame de filtros
         filtros_frame = self.criar_filtros_historico()
@@ -1391,7 +1343,6 @@ class PropostasWindow(QWidget):
         # ⭐⭐ HABILITAR ORDENAÇÃO POR COLUNAS
         self.historico_table.setSortingEnabled(True)
         
-        layout.addWidget(title)
         layout.addWidget(filtros_frame)
         layout.addWidget(self.historico_table)
         
