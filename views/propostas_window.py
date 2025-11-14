@@ -151,16 +151,6 @@ class GoogleSheetsService:
             
             self.dados = dados_processados
             print(f"Dados reais carregados com sucesso: {len(self.dados)} registros")
-            
-            # Mostrar alguns registros para debug
-         #   if self.dados:
-         #       print("Primeiros 3 registros:")
-         #       for i, item in enumerate(self.dados[:3]):
-         #           print(f"  {i+1}: Região={item['Região']}, Convênio={item['Convênio']}, Produto={item['Produto']}, Status={item['Status']}")
-         #   else:
-         #       print("Nenhum dado válido encontrado na planilha")
-         #       QMessageBox.warning(None, "Aviso", 
-         #                         "Nenhum dado válido encontrado na planilha. Verifique a estrutura das colunas.")
                 
         except Exception as e:
             print(f"Erro ao carregar dados reais: {e}")
@@ -249,9 +239,14 @@ class PropostasWindow(QWidget):
     def init_ui(self):
         # DEFINIR ÍCONE DA JANELA
         try:
-            self.setWindowIcon(QIcon('assets/logo.png'))
-        except:
-            print("Logo não encontrada. Verifique o caminho: assets/logo.png")
+            icon_path = 'assets/logo.png'
+            if os.path.exists(icon_path):
+                self.setWindowIcon(QIcon(icon_path))
+                print(f"✅ Ícone carregado: {icon_path}")
+            else:
+                print(f"❌ Logo não encontrada. Verifique o caminho: {icon_path}")
+        except Exception as e:
+            print(f"❌ Erro ao carregar ícone: {e}")
 
         self.setWindowTitle("AVERBSYS")
         self.setStyleSheet(get_propostas_styles())
@@ -500,7 +495,7 @@ class PropostasWindow(QWidget):
         # Cadastrar Usuário: apenas Dev
         self.cadastrar_button.setVisible(perfil == 'Dev')
         
-        # Manutenção de Usuários: Dev, Gerente e Supervisor
+        # Manutenção de Usuários: Dev, Gerente e Supervisor (mas com permissões diferentes)
         self.manutencao_button.setVisible(perfil in ['Dev', 'Gerente', 'Supervisor'])
     
 
@@ -546,13 +541,13 @@ class PropostasWindow(QWidget):
         
         # CONFIGURAÇÃO POR TIPO DE PROPOSTA
         if tipo_proposta == "Solicitação Interna":
-            placeholder = "ex: A00-1234567890 ou 00-1234567890"
-            max_length = 14
+            placeholder = "ex: A00-12345678900 ou 00-12345678900"
+            max_length = 15
             texto_inicial = ""
             label_text = "Nº Contrato:"
         else:
-            placeholder = "ex: 50-1234567890"
-            max_length = 13
+            placeholder = "ex: 50-12345678900"
+            max_length = 14
             texto_inicial = ""
             label_text = "Nº Contrato:"
 
@@ -626,6 +621,9 @@ class PropostasWindow(QWidget):
             if self.user_data['perfil'] == 'Analista':
                 cadastrar_button.setVisible(False)
                 manutencao_button.setVisible(False)
+            # Opção 1 (mais clara):
+            if self.user_data['perfil'] in ['Supervisor', 'Gerente']:
+                cadastrar_button.setVisible(False)
             
             # Adicionar botões ao layout
             input_layout.addWidget(cadastrar_button)
@@ -1063,40 +1061,40 @@ class PropostasWindow(QWidget):
         if tipo_proposta == "Solicitação Interna":
             # ⭐⭐ ACEITA DOIS FORMATOS ⭐⭐
             
-            # Formato 1: A00-0000000000 (Letra + 2 dígitos + hífen + 10 dígitos)
-            if len(texto) == 14 and '-' in texto:
+            # Formato 1: A00-00000000000 (Letra + 2 dígitos + hífen + 11 dígitos)
+            if len(texto) == 15 and '-' in texto:
                 partes = texto.split('-')
                 print(f"📝 Formato 1 - Partes: {partes}")
                 if (len(partes) == 2 and 
                     len(partes[0]) == 3 and 
                     partes[0][0].isalpha() and  # Primeiro caractere é letra
                     partes[0][1:].isdigit() and  # Próximos 2 são dígitos
-                    len(partes[1]) == 10 and partes[1].isdigit()):  # 10 dígitos após hífen
-                    print("✅ Formato 1 válido: A00-0000000000")
+                    len(partes[1]) == 11 and partes[1].isdigit()):  # 11 dígitos após hífen
+                    print("✅ Formato 1 válido: A00-00000000000")
                     return True
             
-            # Formato 2: 00-0000000000 (2 dígitos + hífen + 10 dígitos)
-            if len(texto) == 13 and '-' in texto:
+            # Formato 2: 00-00000000000 (2 dígitos + hífen + 11 dígitos)
+            if len(texto) == 14 and '-' in texto:
                 partes = texto.split('-')
                 print(f"📝 Formato 2 - Partes: {partes}")
                 if (len(partes) == 2 and 
                     len(partes[0]) == 2 and partes[0].isdigit() and
-                    len(partes[1]) == 10 and partes[1].isdigit()):
-                    print("✅ Formato 2 válido: 00-0000000000")
+                    len(partes[1]) == 11 and partes[1].isdigit()):
+                    print("✅ Formato 2 válido: 00-00000000000")
                     return True
             
             print("❌ Nenhum formato válido para Solicitação Interna")
             return False
             
         else:
-            # Outras abas: apenas formato XX-XXXXXXXXXX
-            if len(texto) == 13 and '-' in texto:
+            # Outras abas: apenas formato XX-XXXXXXXXXXX
+            if len(texto) == 14 and '-' in texto:
                 partes = texto.split('-')
                 print(f"📝 Outras abas - Partes: {partes}")
                 if (len(partes) == 2 and 
                     len(partes[0]) == 2 and partes[0].isdigit() and
-                    len(partes[1]) == 10 and partes[1].isdigit()):
-                    print("✅ Formato válido para outras abas: 00-0000000000")
+                    len(partes[1]) == 11 and partes[1].isdigit()):
+                    print("✅ Formato válido para outras abas: 00-00000000000")
                     return True
             
             print("❌ Formato inválido para outras abas")
@@ -1194,9 +1192,6 @@ class PropostasWindow(QWidget):
             todas_concluidas = self.verificar_todas_tarefas_concluidas(tipo_proposta)
             filtros_preenchidos = self.verificar_filtros_preenchidos(tipo_proposta)
             
-            # ⭐⭐ CORREÇÃO: LÓGICA SEPARADA
-            # APROVAR: precisa de tarefas + filtros
-            # RECUSAR: precisa APENAS de filtros
             self.aprovar_buttons[tipo_proposta].setEnabled(todas_concluidas and filtros_preenchidos)
             self.recusar_buttons[tipo_proposta].setEnabled(filtros_preenchidos)
             
@@ -1211,8 +1206,7 @@ class PropostasWindow(QWidget):
             'produto': self.produto_combos[tipo_proposta].currentData(),
             'status': self.status_labels[tipo_proposta].text()
         }
-        
-        # ⭐⭐ ADICIONAR NOVOS CAMPOS
+
         if hasattr(self, 'cpf_inputs') and tipo_proposta in self.cpf_inputs:
             dados['cpf'] = self.cpf_inputs[tipo_proposta].text()
         
@@ -1226,8 +1220,7 @@ class PropostasWindow(QWidget):
         
         if hasattr(self, 'observacoes_inputs') and tipo_proposta in self.observacoes_inputs:
             dados['observacoes'] = self.observacoes_inputs[tipo_proposta].text()
-        
-        # ⭐⭐ ADICIONAR VALOR DE TROCO (apenas para Refin e Solicitação Interna)
+
         if tipo_proposta in ["Refin", "Solicitação Interna"] and hasattr(self, 'troco_inputs') and tipo_proposta in self.troco_inputs:
             dados['valor_troco'] = self.troco_inputs[tipo_proposta].text()
             dados['moeda_troco'] = "R$"
@@ -1245,9 +1238,8 @@ class PropostasWindow(QWidget):
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         
-        # ⭐⭐ ALTURA REDUZIDA - ajustada para telas menores
-        scroll.setMinimumHeight(80)  # Reduzido de 100 para 80
-        scroll.setMaximumHeight(150)  # Reduzido de 200 para 150
+        scroll.setMinimumHeight(80)  
+        scroll.setMaximumHeight(150) 
         
         tarefas_widget = QWidget()
         tarefas_layout = QGridLayout()
@@ -1285,8 +1277,8 @@ class PropostasWindow(QWidget):
         frame = QFrame()
         frame.setObjectName("formFrame")
         layout = QHBoxLayout()
-        layout.setContentsMargins(8, 4, 8, 4)  # ⭐⭐ REDUZIDO verticalmente (8,8,8,8 -> 8,4,8,4)
-        layout.setSpacing(6)  # ⭐⭐ REDUZIDO ESPAÇAMENTO (8 -> 6)
+        layout.setContentsMargins(8, 4, 8, 4)  
+        layout.setSpacing(6)  
         
         aprovar_button = QPushButton("✅ Aprovar Contrato")
         aprovar_button.setObjectName("successButton")
@@ -1314,16 +1306,15 @@ class PropostasWindow(QWidget):
         """Evento chamado quando a janela é redimensionada"""
         super().resizeEvent(event)
         
-        # Ajustar elementos quando a janela mudar de tamanho
         if hasattr(self, 'tabs') and self.tabs.currentWidget():
-            # Ajustar altura da área de tarefas baseado no novo tamanho
+
             current_tab_name = self.tabs.tabText(self.tabs.currentIndex())
             if current_tab_name in ["Saque Fácil", "Refin", "Saque Direcionado"]:
                 self.ajustar_altura_tarefas(current_tab_name)
 
     def ajustar_altura_tarefas(self, tipo_proposta):
         """Ajusta a altura da área de tarefas baseado no tamanho da janela"""
-        # Encontra o scroll area de tarefas
+
         tab_widget = self.tabs.currentWidget()
         for i in range(tab_widget.layout().count()):
             widget = tab_widget.layout().itemAt(i).widget()
@@ -1331,7 +1322,7 @@ class PropostasWindow(QWidget):
                 for j in range(widget.layout().count()):
                     sub_widget = widget.layout().itemAt(j).widget()
                     if isinstance(sub_widget, QScrollArea):
-                        # Define altura como 25% da altura da janela, com limites
+
                         altura = int(self.height() * 0.25)
                         altura = max(100, min(altura, 300))  # Mín: 100, Máx: 300
                         sub_widget.setFixedHeight(altura)
@@ -1602,7 +1593,7 @@ class PropostasWindow(QWidget):
             self.tarefas_concluidas = {}
     
     def validar_numero_proposta(self, texto, tipo_proposta):
-        if texto.isdigit() and len(texto) == 13:
+        if texto.isdigit() and len(texto) == 14:
             # Verificar se a proposta já existe
             proposta_existente = self.proposta_service.verificar_proposta_existente(texto)
             
@@ -1710,12 +1701,7 @@ class PropostasWindow(QWidget):
                 QMessageBox.warning(self, "Aviso", "Erro ao verificar contrato existente. Prosseguindo como novo contrato.")
         else:
             print("✅ Solicitação Interna - não verifica existência")
-        
-        # ⭐⭐ SÓ CHEGA AQUI SE:
-        # 1. É Solicitação Interna OU
-        # 2. É outra aba mas o contrato é NOVO OU
-        # 3. Houve erro na verificação
-        
+               
         print("✅ Configurando proposta em andamento")
         
         # TRAVAR o campo de entrada
@@ -1823,20 +1809,8 @@ class PropostasWindow(QWidget):
         checkboxes = self.checkboxes_dict.get(tipo_proposta, {})
         return all(checkbox.isChecked() for checkbox in checkboxes.values())
     
-    #def atualizar_duracao_display(self):
-    #    """Atualiza o display da duração em tempo real"""
-    #    if self.proposta_em_andamento and self.data_criacao and self.tipo_proposta_atual:
-    #        duracao = datetime.now() - self.data_criacao
-    #        horas = duracao.seconds // 3600
-    #        minutos = (duracao.seconds % 3600) // 60
-    #        segundos = duracao.seconds % 60        
-    #        duracao_str = f"{horas:02d}:{minutos:02d}:{segundos:02d}"
-    #        self.duracao_labels[self.tipo_proposta_atual].setText(f"Duração: {duracao_str}")
-
     def atualizar_duracao_display(self):
         """Atualiza o display da duração em tempo real - MANTIDO MAS VAZIO PARA OCULTAR NA INTERFACE"""
-        # Este método é mantido para evitar erros, mas não faz nada
-        # A duração continua sendo calculada e salva no banco, apenas não é exibida
         pass
     
     def calcular_duracao_total(self):
@@ -1849,9 +1823,6 @@ class PropostasWindow(QWidget):
             return f"{horas:02d}:{minutos:02d}:{segundos:02d}"
         return "00:00:00"
     
-
-
-
 
     def recusar_proposta(self, tipo_proposta):
         """Abre popup para selecionar motivo da recusa"""
@@ -1885,18 +1856,32 @@ class PropostasWindow(QWidget):
             return
         
         # Confirmar recusa com o motivo
-        resposta = QMessageBox.question(
-            self, 
-            "Confirmar Recusa",
-            f"Tem certeza que deseja recusar a proposta?\n\n"
-            f"Motivo: {motivo_id} - {descricao}",
-            QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No
-        )
+        msg_box = QMessageBox()
+        msg_box.setWindowTitle(" ")
         
-        if resposta == QMessageBox.Yes:
+        # ⭐⭐ ADICIONAR ÍCONE NA MESSAGE BOX
+        try:
+            msg_box.setWindowIcon(QIcon('assets/logo.png'))
+        except:
+            print("Logo não encontrada para message box")
+        
+        msg_box.setText(f"Tem certeza que deseja recusar a proposta?\n\n"
+                        f"Motivo: {motivo_id} - {descricao}")
+        msg_box.setIcon(QMessageBox.Question)
+
+        # ⭐⭐ BOTÕES EM PORTUGUÊS
+        btn_sim = msg_box.addButton("Sim", QMessageBox.YesRole)
+        btn_nao = msg_box.addButton("Não", QMessageBox.NoRole)
+
+        msg_box.setDefaultButton(btn_nao)
+
+        # Mostrar e verificar resposta
+        msg_box.exec_()
+
+        if msg_box.clickedButton() == btn_sim:
             # Finalizar proposta com status "Recusada" e motivo
             self.finalizar_proposta_com_motivo(tipo_proposta, "Recusada", motivo_id, descricao)
+
 
 
     def finalizar_proposta_com_motivo(self, tipo_proposta, status, motivo_id, motivo_descricao):
@@ -2016,8 +2001,6 @@ class PropostasWindow(QWidget):
                                 "Exemplo: 50-1234567890")
             return
         
-        # ⭐⭐ CORREÇÃO: Apenas para APROVAÇÃO verificar se TODAS as tarefas foram concluídas
-        # Para RECUSA, não precisa verificar tarefas - REMOVIDA A VALIDAÇÃO DE TAREFAS PARA RECUSA
         if status == "Aprovada" and not self.verificar_todas_tarefas_concluidas(tipo_proposta):
             QMessageBox.warning(self, "Atenção", "Todas as tarefas devem ser concluídas para aprovar a proposta!")
             return
@@ -2190,3 +2173,5 @@ class PropostasWindow(QWidget):
         
         # ⭐⭐ AJUSTAR AUTOMATICAMENTE AS COLUNAS AO CONTEÚDO (opcional)
             self.historico_table.resizeColumnsToContents()
+
+

@@ -26,22 +26,18 @@ class PropostaService(QObject):
             self.colecoes = {
                 'Saque Fácil': self.db.collection('tarefas1_saquefacil'),
                 'Refin': self.db.collection('tarefas2_refin'),
-                'Saque Direcionado': self.db.collection('tarefas3_saquedirecionado'),
-                'Solicitação Interna': self.db.collection('tarefas4_solicitacao_interna')  # ⭐⭐ ADICIONADO
+                'Saque Direcionado': self.db.collection('tarefas3_saquedirecionado')
             }
             print("✅ PropostaService inicializado com sucesso!")
-            print(f"📚 Coleções disponíveis: {list(self.colecoes.keys())}")
         except Exception as e:
             print(f"❌ Erro ao inicializar PropostaService: {e}")
             raise
     
-
     def criar_e_finalizar_proposta(self, numero_proposta, analista, tipo_proposta, 
-                                        tarefas_concluidas, status, data_criacao, 
-                                        data_conclusao, duracao_total, dados_filtro=None):
+                                    tarefas_concluidas, status, data_criacao, 
+                                    data_conclusao, duracao_total, dados_filtro=None):
         """
         Cria e finaliza uma proposta na coleção correta baseada no tipo
-        Inclui todos os novos campos: CPF, Valor Liberado, Prazo, Observações, Valor de Troco
         """
         try:
             # Mapear tipo de proposta para coleção
@@ -49,11 +45,9 @@ class PropostaService(QObject):
                 'Saque Fácil': 'tarefas1_saquefacil',
                 'Refin': 'tarefas2_refin', 
                 'Saque Direcionado': 'tarefas3_saquedirecionado',
-                'Solicitação Interna': 'tarefas4_solicitacao_interna',
                 'Saque Fácil - Reanalise': 'tarefas1_saquefacil',
                 'Refin - Reanalise': 'tarefas2_refin',
-                'Saque Direcionado - Reanalise': 'tarefas3_saquedirecionado',
-                'Solicitação Interna - Reanalise': 'tarefas4_solicitacao_interna'
+                'Saque Direcionado - Reanalise': 'tarefas3_saquedirecionado'
             }
             
             colecao = colecoes_map.get(tipo_proposta)
@@ -77,69 +71,23 @@ class PropostaService(QObject):
             filtros_processados = {}
             if dados_filtro:
                 print(f"📍 Dados dos filtros:")
-                
-                # ⭐⭐ CAMPOS OBRIGATÓRIOS DOS FILTROS
-                campos_obrigatorios = ['regiao', 'convenio', 'produto', 'status']
-                for campo in campos_obrigatorios:
-                    valor = dados_filtro.get(campo, '')
-                    filtros_processados[campo] = valor if valor is not None else ""
-                    print(f"   {campo}: {filtros_processados[campo]}")
-                
-                # ⭐⭐ NOVOS CAMPOS ADICIONAIS
-                campos_adicionais = [
-                    'cpf', 'valor_liberado', 'moeda', 'prazo', 'unidade_prazo', 
-                    'observacoes', 'valor_troco', 'moeda_troco'
-                ]
-                
-                for campo in campos_adicionais:
-                    valor = dados_filtro.get(campo, '')
-                    filtros_processados[campo] = valor if valor is not None else ""
-                    if valor:  # Só printa se tiver valor
-                        print(f"   {campo}: {valor}")
-                
-                # Campos de motivo de recusa
-                campos_recusa = ['motivo_recusa_id', 'motivo_recusa_descricao']
-                for campo in campos_recusa:
-                    valor = dados_filtro.get(campo, '')
-                    filtros_processados[campo] = valor if valor is not None else ""
-                
+                for key, value in dados_filtro.items():
+                    # Garantir que valores None sejam convertidos para string vazia
+                    valor_final = value if value is not None else ""
+                    filtros_processados[key] = valor_final
+                    print(f"   {key}: {valor_final}")
             else:
                 print("📍 Nenhum dado de filtro fornecido")
-                # Inicializar com valores padrão para todos os campos
+                # Inicializar com valores padrão
                 filtros_processados = {
-                    # Campos obrigatórios
                     'regiao': '',
                     'convenio': '',
                     'produto': '',
                     'status': '',
-                    
-                    # ⭐⭐ NOVOS CAMPOS
-                    'cpf': '',
-                    'valor_liberado': '',
-                    'moeda': 'R$',
-                    'prazo': '',
-                    'unidade_prazo': 'Meses',
-                    'observacoes': '',
-                    'valor_troco': '',
-                    'moeda_troco': 'R$',
-                    
-                    # Campos de recusa
                     'motivo_recusa_id': '',
                     'motivo_recusa_descricao': '',
-                    'tipo_recusa': ''
+                    'tipo_recusa': ''  # NOVO CAMPO
                 }
-            
-            # ⭐⭐ GARANTIR VALORES PADRÃO PARA OS NOVOS CAMPOS SE NÃO FORNECIDOS
-            if 'moeda' not in filtros_processados or not filtros_processados['moeda']:
-                filtros_processados['moeda'] = 'R$'
-            if 'unidade_prazo' not in filtros_processados or not filtros_processados['unidade_prazo']:
-                filtros_processados['unidade_prazo'] = 'Meses'
-            if 'moeda_troco' not in filtros_processados or not filtros_processados['moeda_troco']:
-                filtros_processados['moeda_troco'] = 'R$'
-            
-            # ⭐⭐ GARANTIR QUE TIPO_RECUSA EXISTE SEMPRE (mesmo para aprovações)
-            if 'tipo_recusa' not in filtros_processados:
-                filtros_processados['tipo_recusa'] = ''
             
             # Se for recusa e tiver motivo, adicionar tipo de recusa
             if status == "Recusada":
@@ -151,16 +99,15 @@ class PropostaService(QObject):
                     tipo_recusa = f"{motivo_id} - {motivo_desc}"
                     filtros_processados['tipo_recusa'] = tipo_recusa
                     print(f"   Motivo de Recusa: {tipo_recusa}")
-                else:
-                    filtros_processados['tipo_recusa'] = ''
                 
                 # Garantir que os campos existam mesmo se vazios
                 if 'motivo_recusa_id' not in filtros_processados:
                     filtros_processados['motivo_recusa_id'] = ''
                 if 'motivo_recusa_descricao' not in filtros_processados:
                     filtros_processados['motivo_recusa_descricao'] = ''
+                if 'tipo_recusa' not in filtros_processados:
+                    filtros_processados['tipo_recusa'] = ''
             
-            # ⭐⭐ MONTAR DADOS COMPLETOS DA PROPOSTA
             proposta_data = {
                 'numero_proposta': numero_proposta,
                 'analista': analista,
@@ -170,46 +117,16 @@ class PropostaService(QObject):
                 'data_criacao': data_criacao,
                 'data_conclusao': data_conclusao,
                 'duracao_total': duracao_total,
-                'dados_filtro': filtros_processados,  # Inclui todos os novos campos
+                'dados_filtro': filtros_processados,  # Agora inclui tipo_recusa
                 'timestamp': datetime.now()
             }
             
-            # ⭐⭐ VALIDAÇÃO FINAL DOS DADOS
-            print(f"🔍 VALIDAÇÃO FINAL DOS DADOS:")
-            print(f"   ✅ Número: {proposta_data['numero_proposta']}")
-            print(f"   ✅ Analista: {proposta_data['analista']}")
-            print(f"   ✅ Tipo: {proposta_data['tipo_proposta']}")
-            print(f"   ✅ Status: {proposta_data['status']}")
-            print(f"   ✅ CPF: {filtros_processados.get('cpf', 'N/A')}")
-            print(f"   ✅ Valor Liberado: {filtros_processados.get('valor_liberado', 'N/A')} {filtros_processados.get('moeda', 'R$')}")
-            print(f"   ✅ Prazo: {filtros_processados.get('prazo', 'N/A')} {filtros_processados.get('unidade_prazo', 'Meses')}")
-            print(f"   ✅ Observações: {filtros_processados.get('observacoes', 'N/A')}")
-            
-            # Verificar se tem Valor de Troco (apenas para Refin e Solicitação Interna)
-            if tipo_proposta in ["Refin", "Solicitação Interna", "Refin - Reanalise", "Solicitação Interna - Reanalise"]:
-                valor_troco = filtros_processados.get('valor_troco', '')
-                print(f"   ✅ Valor de Troco: {valor_troco} {filtros_processados.get('moeda_troco', 'R$')}")
-            
-            # ⭐⭐ VERIFICAR SE A COLEÇÃO EXISTE NO DB
-            print(f"🔍 Verificando acesso à coleção {colecao}...")
-            try:
-                # Tentar acessar a coleção para ver se existe
-                teste_docs = self.db.collection(colecao).limit(1).get()
-                print(f"✅ Coleção {colecao} acessível, {len(teste_docs)} documentos encontrados")
-            except Exception as e:
-                print(f"⚠️  Aviso ao acessar coleção {colecao}: {e}")
-            
             # Salvar na coleção correta
-            print(f"💾 Iniciando salvamento na coleção {colecao}...")
             doc_ref = self.db.collection(colecao).document()
             doc_ref.set(proposta_data)
             
             print(f"✅ Proposta {numero_proposta} salva com sucesso na coleção {colecao}")
-            print(f"📊 Todos os dados dos filtros salvos:")
-            for key, value in filtros_processados.items():
-                if value:  # Só mostra campos com valor
-                    print(f"   📍 {key}: {value}")
-            
+            print(f"📊 Dados dos filtros salvos: {filtros_processados}")
             self.proposta_criada.emit(True, f"Proposta {numero_proposta} {status} com sucesso!")
             
         except Exception as e:
@@ -218,7 +135,6 @@ class PropostaService(QObject):
             print(f"🔍 TRACEBACK COMPLETO:")
             traceback.print_exc()
             self.proposta_criada.emit(False, f"Erro ao salvar proposta: {str(e)}")
-
     
     def listar_propostas_por_analista(self, analista):
         """Lista todas as propostas de um analista específico"""
@@ -266,45 +182,83 @@ class PropostaService(QObject):
             return []
         
     def listar_todas_propostas(self):
-        """Lista todas as propostas de todas as coleções"""
+        """Lista todas as propostas do sistema"""
         try:
+            print("📋 Buscando todas as propostas no Firebase...")
+            
             propostas = []
             
-            for colecao in self.colecoes.values():
-                docs = colecao.limit(500).get()
-                
-                for doc in docs:
-                    proposta_data = doc.to_dict()
-                    proposta_data['id'] = doc.id
-                    
-                    # Converter timestamps do Firestore para datetime
-                    proposta_data = self._converter_datas_proposta(proposta_data)
-                    
-                    # GARANTIR QUE DADOS_FILTRO EXISTE
-                    if 'dados_filtro' not in proposta_data:
-                        proposta_data['dados_filtro'] = {
-                            'regiao': '',
-                            'convenio': '',
-                            'produto': '',
-                            'status': ''
-                        }
-                    else:
-                        # Garantir que todos os campos existem no dados_filtro
-                        dados_filtro = proposta_data['dados_filtro']
-                        campos_necessarios = ['regiao', 'convenio', 'produto', 'status']
-                        for campo in campos_necessarios:
-                            if campo not in dados_filtro:
-                                dados_filtro[campo] = ''
-                    
-                    propostas.append(proposta_data)
+            # ⭐⭐ USAR AS COLEÇÕES REAIS DO SEU FIREBASE ⭐⭐
+            colecoes_reais = {
+                'tarefas1_saquefacil': 'Saque Fácil',
+                'tarefas2_refin': 'Refin', 
+                'tarefas3_saquedirecionado': 'Saque Direcionado',
+                'Solicitação Interna': 'Solicitação Interna'  # Se existir
+            }
             
-            # Ordenar por data (mais recente primeiro)
-            propostas.sort(key=lambda x: self._converter_para_datetime(x.get('data_criacao')), reverse=True)
+            for colecao_nome, tipo_proposta in colecoes_reais.items():
+                try:
+                    print(f"🔍 Buscando na coleção: {colecao_nome}")
+                    docs = self.db.collection(colecao_nome).get()
+                    
+                    for doc in docs:
+                        proposta_data = doc.to_dict()
+                        print(f"📄 Documento encontrado em {colecao_nome}: {doc.id}")
+                        
+                        # Converter datas
+                        proposta_data = self._converter_datas_proposta(proposta_data)
+                        
+                        # Garantir que dados_filtro existe
+                        if 'dados_filtro' not in proposta_data:
+                            proposta_data['dados_filtro'] = {
+                                'regiao': '', 'convenio': '', 'produto': '', 'status': '',
+                                'cpf': '', 'valor_liberado': '', 'prazo': '', 'observacoes': '',
+                                'valor_troco': '', 'motivo_recusa_descricao': ''
+                            }
+                        
+                        proposta_formatada = {
+                            'id': doc.id,
+                            'numero_proposta': proposta_data.get('numero_proposta', doc.id),
+                            'analista': proposta_data.get('analista', ''),
+                            'tipo_proposta': proposta_data.get('tipo_proposta', tipo_proposta),
+                            'status': proposta_data.get('status', ''),
+                            'data_criacao': proposta_data.get('data_criacao'),
+                            'data_conclusao': proposta_data.get('data_conclusao'),
+                            'duracao_total': proposta_data.get('duracao_total', ''),
+                            'dados_filtro': proposta_data.get('dados_filtro', {})
+                        }
+                        
+                        propostas.append(proposta_formatada)
+                        print(f"   ✅ Nº: {proposta_formatada['numero_proposta']}, Tipo: {proposta_formatada['tipo_proposta']}, Status: {proposta_formatada['status']}")
+                        
+                except Exception as e:
+                    print(f"❌ Erro ao buscar na coleção {colecao_nome}: {e}")
+                    continue
+            
+            print(f"✅ Total de {len(propostas)} propostas encontradas")
+            
+            # Mostrar estatísticas
+            if propostas:
+                tipos = {}
+                status_count = {}
+                for proposta in propostas:
+                    tipo = proposta['tipo_proposta']
+                    status = proposta['status']
+                    tipos[tipo] = tipos.get(tipo, 0) + 1
+                    status_count[status] = status_count.get(status, 0) + 1
+                
+                print("📊 Estatísticas das propostas:")
+                for tipo, count in tipos.items():
+                    print(f"   • {tipo}: {count} propostas")
+                for status, count in status_count.items():
+                    print(f"   • Status '{status}': {count} propostas")
             
             return propostas
             
         except Exception as e:
-            print(f"Erro ao listar todas as propostas: {e}")
+            print(f"❌ Erro ao listar propostas: {e}")
+            import traceback
+            traceback.print_exc()
             return []
         
     def listar_propostas_com_filtros(self, data_inicio=None, data_fim=None, analista=None, tipo_proposta=None):
@@ -384,59 +338,46 @@ class PropostaService(QObject):
             print(f"Erro ao listar propostas com filtros: {e}")
             return []
     
-    def listar_propostas_simples_filtro(self, data_inicio=None, data_fim=None, analista=None, tipo_proposta=None):
-        """Versão alternativa mais simples para filtros"""
+    def listar_propostas_simples_filtro(self, data_inicio=None, data_fim=None, analista=None):
+        """Lista propostas com filtros simples para o histórico"""
         try:
-            # ⭐⭐ CORREÇÃO: Remover o parâmetro tipo_proposta da chamada
-            # Primeiro, buscar todas as propostas sem filtros complexos
-            todas_propostas = self.listar_todas_propostas()
+            print(f"🔍 Filtrando propostas - Data: {data_inicio} a {data_fim}, Analista: {analista}")
             
-            # Aplicar filtros localmente
+            todas_propostas = self.listar_todas_propostas()
             propostas_filtradas = []
             
             for proposta in todas_propostas:
-                # Filtro por tipo de proposta (se especificado)
-                if tipo_proposta and proposta.get('tipo_proposta') != tipo_proposta:
-                    continue
-                
-                # Filtro por data
-                data_criacao = self._converter_para_datetime(proposta.get('data_criacao'))
-                
-                if data_inicio:
-                    data_inicio_dt = data_inicio if isinstance(data_inicio, datetime) else datetime.combine(data_inicio, time.min)
-                    # Tornar ambas as datas timezone-aware para comparação
-                    data_inicio_dt = self._make_timezone_aware(data_inicio_dt)
-                    data_criacao = self._make_timezone_aware(data_criacao)
-                    
-                    if data_criacao < data_inicio_dt:
+                # Converter data_criacao se for string
+                data_criacao = proposta.get('data_criacao')
+                if isinstance(data_criacao, str):
+                    try:
+                        data_criacao = datetime.strptime(data_criacao, '%Y-%m-%d %H:%M:%S')
+                    except:
                         continue
                 
-                if data_fim:
-                    data_fim_dt = data_fim if isinstance(data_fim, datetime) else datetime.combine(data_fim, time.max)
-                    # Tornar ambas as datas timezone-aware para comparação
-                    data_fim_dt = self._make_timezone_aware(data_fim_dt)
-                    data_criacao = self._make_timezone_aware(data_criacao)
-                    
-                    if data_criacao > data_fim_dt:
+                # Aplicar filtro de data
+                if data_inicio and data_criacao:
+                    if data_criacao.date() < data_inicio:
                         continue
                 
-                # Filtro por analista
-                if analista and proposta.get('analista') != analista:
-                    continue
+                if data_fim and data_criacao:
+                    if data_criacao.date() > data_fim:
+                        continue
+                
+                # Aplicar filtro de analista
+                if analista and analista != "todos":
+                    if proposta.get('analista') != analista:
+                        continue
                 
                 propostas_filtradas.append(proposta)
             
-            # Ordenar por data
-            propostas_filtradas.sort(key=lambda x: self._converter_para_datetime(x.get('data_criacao')), reverse=True)
-            
-            print(f"✅ Histórico filtrado: {len(propostas_filtradas)} propostas encontradas")
-            
+            print(f"✅ {len(propostas_filtradas)} propostas após filtro")
             return propostas_filtradas
             
         except Exception as e:
-            print(f"❌ Erro ao listar propostas com filtros simples: {e}")
+            print(f"❌ Erro ao filtrar propostas: {e}")
             return []
-    
+        
     def _converter_datas_proposta(self, proposta_data):
         """Converte as datas do Firestore para objetos Python datetime"""
         try:
