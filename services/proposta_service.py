@@ -40,21 +40,30 @@ class PropostaService(QObject):
         Cria e finaliza uma proposta na coleção correta baseada no tipo
         """
         try:
-            # Mapear tipo de proposta para coleção
+            # ⭐⭐ CORREÇÃO: MAPEAMENTO CORRETO DAS COLEÇÕES ⭐⭐
             colecoes_map = {
                 'Saque Fácil': 'tarefas1_saquefacil',
                 'Refin': 'tarefas2_refin', 
                 'Saque Direcionado': 'tarefas3_saquedirecionado',
+                'Solicitação Interna': 'tarefas4_solicitacao_interna',  # ⭐⭐ CORRETO
                 'Saque Fácil - Reanalise': 'tarefas1_saquefacil',
                 'Refin - Reanalise': 'tarefas2_refin',
                 'Saque Direcionado - Reanalise': 'tarefas3_saquedirecionado'
             }
             
             colecao = colecoes_map.get(tipo_proposta)
+            
+            # ⭐⭐ DEBUG: Verificar qual coleção está sendo selecionada
+            print(f"🔍 Tipo de proposta recebido: '{tipo_proposta}'")
+            print(f"🔍 Coleção mapeada: '{colecao}'")
+            print(f"🔍 Mapeamento completo: {colecoes_map}")
+            
             if not colecao:
-                # Fallback: usar primeira coleção
-                colecao = 'tarefas1_saquefacil'
-                print(f"⚠️  Tipo de proposta não mapeado: {tipo_proposta}, usando coleção: {colecao}")
+                # ⭐⭐ CORREÇÃO: Não usar fallback, mostrar erro
+                error_msg = f"Tipo de proposta não mapeado: {tipo_proposta}"
+                print(f"❌ {error_msg}")
+                self.proposta_criada.emit(False, error_msg)
+                return
             
             print(f"💾 Salvando proposta na coleção: {colecao}")
             print(f"📋 Dados da proposta:")
@@ -125,9 +134,9 @@ class PropostaService(QObject):
             doc_ref = self.db.collection(colecao).document()
             doc_ref.set(proposta_data)
             
-            print(f"✅ Proposta {numero_proposta} salva com sucesso na coleção {colecao}")
+            print(f"✅ Contrato {numero_proposta} salvo com sucesso na coleção {colecao}")
             print(f"📊 Dados dos filtros salvos: {filtros_processados}")
-            self.proposta_criada.emit(True, f"Proposta {numero_proposta} {status} com sucesso!")
+            self.proposta_criada.emit(True, f"Contrato {numero_proposta} {status} com sucesso!")
             
         except Exception as e:
             print(f"❌ ERRO AO SALVAR PROPOSTA: {e}")
@@ -193,7 +202,7 @@ class PropostaService(QObject):
                 'tarefas1_saquefacil': 'Saque Fácil',
                 'tarefas2_refin': 'Refin', 
                 'tarefas3_saquedirecionado': 'Saque Direcionado',
-                'Solicitação Interna': 'Solicitação Interna'  # Se existir
+                'tarefas4_solicitacao_interna': 'Solicitação Interna'  # Se existir
             }
             
             for colecao_nome, tipo_proposta in colecoes_reais.items():
