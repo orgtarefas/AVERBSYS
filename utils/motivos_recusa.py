@@ -25,7 +25,9 @@ def get_motivos_recusa():
         ("122", "REFIN CONTEMPLAR CONTRATOS EM ABERTOS"),
         ("123", "REFIN PARCELAS BAIXADAS"),
         ("124", "TEMPO MINÍMO DE VÍNCULO"),
-        ("125", "VALOR DA OPERAÇÃO MAIOR DO QUE O PERMITIDO")
+        ("125", "VALOR DA OPERAÇÃO MAIOR DO QUE O PERMITIDO"),
+        ("126", "DUPLICIDADE"),
+        ("127", "LIMITE DE CONTRATAÇÃO ATINGIDO")
     ]
 
 def get_motivo_por_id(motivo_id):
