@@ -23,7 +23,7 @@ class LoginWindow(QWidget):
         super().__init__()
         self.settings = QSettings("AVERBSYS", "LoginApp")
         self.proposta_service = PropostaService() 
-        self.versao_local = "0.2"  # versão
+        self.versao_local = "0.3"  # versão
         self.init_ui()
         self.load_saved_credentials()
         self.verificar_versao_sistema()

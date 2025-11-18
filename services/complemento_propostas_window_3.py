@@ -52,7 +52,7 @@ class PropostasWindowPart3:
         
         # CONFIGURAÇÃO POR TIPO DE PROPOSTA
         if tipo_proposta == "Solicitação Interna":
-            placeholder = "ex: A00-12345678900 ou 00-12345678900"
+            placeholder = "cinco padrões distintos vide manual"
             max_length = 15
             texto_inicial = ""
             label_text = "Nº Contrato:"

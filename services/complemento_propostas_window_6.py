@@ -64,11 +64,11 @@ class PropostasWindowPart6:
         # Limpar estilo anterior
         input_field.setStyleSheet("")
         
-       # print(f"🔍 Validando formato: '{texto}' | Tipo: {tipo_proposta}")
+        print(f"🔍 Validando formato: '{texto}' | Tipo: {tipo_proposta}")
         
         # Verificar se o formato está completo
         formato_completo = self.verificar_formato_completo(texto, tipo_proposta)
-       # print(f"📋 Formato completo: {formato_completo}")
+        print(f"📋 Formato completo: {formato_completo}")
         
         if formato_completo:
             # Formato válido - estilo verde
@@ -107,40 +107,86 @@ class PropostasWindowPart6:
                 print("🔄 Limpando proposta em andamento...")
                 self.limpar_proposta(tipo_proposta)
 
+    
     def verificar_formato_completo(self, texto, tipo_proposta):
         """Verifica se o formato está completo baseado no tipo"""
         
         if tipo_proposta == "Solicitação Interna":
-            # ⭐⭐ ACEITA DOIS FORMATOS ⭐⭐
+            print(f"🔍 Analisando texto: '{texto}' | Comprimento: {len(texto)} | Hífens: {texto.count('-')}")
             
-            # Formato 1: A00-00000000000 (Letra + 2 dígitos + hífen + 11 dígitos)
-            if len(texto) == 15 and '-' in texto:
+            # ⭐⭐ ACEITA 5 FORMATOS DIFERENTES ⭐⭐
+            
+            # Padrão 1: 00-0000000000 (2 dígitos + hífen + 10 dígitos) - 13 chars
+            if len(texto) == 13 and texto.count('-') == 1:
                 partes = texto.split('-')
-                print(f"📝 Formato 1 - Partes: {partes}")
+                print(f"📝 Tentando Padrão 1 - Partes: {partes}")
+                if (len(partes) == 2 and 
+                    len(partes[0]) == 2 and partes[0].isdigit() and
+                    len(partes[1]) == 10 and partes[1].isdigit()):
+                    print("✅ Padrão 1 válido: 00-0000000000")
+                    return True
+            
+            # Padrão 2: 00-00000000000 (2 dígitos + hífen + 11 dígitos) - 14 chars
+            if len(texto) == 14 and texto.count('-') == 1:
+                partes = texto.split('-')
+                print(f"📝 Tentando Padrão 2 - Partes: {partes}")
+                if (len(partes) == 2 and 
+                    len(partes[0]) == 2 and partes[0].isdigit() and
+                    len(partes[1]) == 11 and partes[1].isdigit()):
+                    print("✅ Padrão 2 válido: 00-00000000000")
+                    return True
+            
+            # Padrão 3: A00-0000000000 (Letra + 2 dígitos + hífen + 10 dígitos) - 14 chars
+            if len(texto) == 14 and texto.count('-') == 1:
+                partes = texto.split('-')
+                print(f"📝 Tentando Padrão 3 - Partes: {partes}")
+                if (len(partes) == 2 and 
+                    len(partes[0]) == 3 and 
+                    partes[0][0].isalpha() and  # Primeiro caractere é letra
+                    partes[0][1:].isdigit() and  # Próximos 2 são dígitos
+                    len(partes[1]) == 10 and partes[1].isdigit()):  # 10 dígitos após hífen
+                    print("✅ Padrão 3 válido: A00-0000000000")
+                    return True
+            
+            # ⭐⭐ PADRÃO 4: A00-00000000000 (Letra + 2 dígitos + hífen + 11 dígitos) - 15 chars
+            if len(texto) == 15 and texto.count('-') == 1:
+                partes = texto.split('-')
+                print(f"📝 Tentando Padrão 4 - Partes: {partes}")
                 if (len(partes) == 2 and 
                     len(partes[0]) == 3 and 
                     partes[0][0].isalpha() and  # Primeiro caractere é letra
                     partes[0][1:].isdigit() and  # Próximos 2 são dígitos
                     len(partes[1]) == 11 and partes[1].isdigit()):  # 11 dígitos após hífen
-                    print("✅ Formato 1 válido: A00-00000000000")
+                    print("✅ Padrão 4 válido: A00-00000000000")
                     return True
             
-            # Formato 2: 00-00000000000 (2 dígitos + hífen + 11 dígitos)
-            if len(texto) == 14 and '-' in texto:
+            # ⭐⭐ PADRÃO 5: XXXXXXXX-XXXX-X (8 caracteres + hífen + 4 caracteres + hífen + 1 caractere) - 15 chars
+            print(f"🔍 Verificando Padrão 5: len={len(texto)}, hífens={texto.count('-')}")
+            if len(texto) == 15 and texto.count('-') == 2:
                 partes = texto.split('-')
-                print(f"📝 Formato 2 - Partes: {partes}")
-                if (len(partes) == 2 and 
-                    len(partes[0]) == 2 and partes[0].isdigit() and
-                    len(partes[1]) == 11 and partes[1].isdigit()):
-                    print("✅ Formato 2 válido: 00-00000000000")
+                print(f"📝 Tentando Padrão 5 - Partes: {partes}")
+                print(f"   Parte 0: '{partes[0]}' (len={len(partes[0])}, alfanumérico={self._is_alphanumeric(partes[0])})")
+                print(f"   Parte 1: '{partes[1]}' (len={len(partes[1])}, alfanumérico={self._is_alphanumeric(partes[1])})")
+                print(f"   Parte 2: '{partes[2]}' (len={len(partes[2])}, alfanumérico={self._is_alphanumeric(partes[2])})")
+                
+                if (len(partes) == 3 and 
+                    len(partes[0]) == 8 and self._is_alphanumeric(partes[0]) and  # 8 caracteres alfanuméricos
+                    len(partes[1]) == 4 and self._is_alphanumeric(partes[1]) and  # 4 caracteres alfanuméricos
+                    len(partes[2]) == 1 and self._is_alphanumeric(partes[2])):   # 1 caractere alfanumérico
+                    print("✅ Padrão 5 válido: XXXXXXXX-XXXX-X")
                     return True
+                else:
+                    print(f"❌ Padrão 5 inválido - condições não atendidas")
+                    return False
+            else:
+                print(f"❌ Não entrou no Padrão 5: len={len(texto)} (esperado 15), hífens={texto.count('-')} (esperado 2)")
             
-            print("❌ Nenhum formato válido para Solicitação Interna")
+            print("❌ Nenhum padrão válido para Solicitação Interna")
             return False
             
         else:
-            # Outras abas: apenas formato XX-XXXXXXXXXXX
-            if len(texto) == 14 and '-' in texto:
+            # Outras abas: apenas formato XX-XXXXXXXXXXX (2 dígitos + hífen + 11 dígitos)
+            if len(texto) == 14 and texto.count('-') == 1:
                 partes = texto.split('-')
                 print(f"📝 Outras abas - Partes: {partes}")
                 if (len(partes) == 2 and 
@@ -150,6 +196,11 @@ class PropostasWindowPart6:
                     return True
             
             return False
+
+
+    def _is_alphanumeric(self, texto):
+        """Verifica se todos os caracteres são alfanuméricos (letras ou números)"""
+        return all(c.isalnum() for c in texto)
         
     def conectar_eventos_troco(self):
         """Conecta eventos de digitação nos inputs de troco para validação"""
@@ -168,4 +219,4 @@ class PropostasWindowPart6:
         
         # Validar estado dos botões após digitar no troco
         if hasattr(self, 'validar_botoes_apos_mudanca_filtro'):
-            self.validar_botoes_apos_mudanca_filtro(tipo_proposta)        
+            self.validar_botoes_apos_mudanca_filtro(tipo_proposta)
