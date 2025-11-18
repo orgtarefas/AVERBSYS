@@ -8,7 +8,7 @@ from PyQt5.QtCore import Qt
 def verificar_validade_sistema():
     """Verifica se o sistema está dentro do período de validade"""
     try:
-        # Data de expiração do sistema (ajuste conforme necessário)
+        # Data de expiração do sistema
         data_expiracao = datetime(2025, 11, 25)  
         
         data_atual = datetime.now()
