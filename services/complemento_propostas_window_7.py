@@ -109,8 +109,8 @@ class PropostasWindowPart7:
 
     def liberar_campos_adicionais(self, tipo_proposta):
         """Libera campos adicionais (Troco, CPF, Valor, Prazo, Observações) após selecionar produto"""
-        # ⭐⭐ LIBERAR VALOR DE TROCO (apenas para Refin e Solicitação Interna)
-        if tipo_proposta in ["Refin", "Solicitação Interna"] and hasattr(self, 'troco_inputs') and tipo_proposta in self.troco_inputs:
+        # ⭐⭐ LIBERAR VALOR DE TROCO (apenas para Refin, Saque Direcionado e Solicitação Interna)
+        if tipo_proposta in ["Refin", "Saque Direcionado", "Solicitação Interna"] and hasattr(self, 'troco_inputs') and tipo_proposta in self.troco_inputs:
             self.troco_inputs[tipo_proposta].setEnabled(True)
             self.troco_inputs[tipo_proposta].setPlaceholderText("Digite o valor do troco")
             print(f"✅ Campo de Troco liberado para {tipo_proposta}")
@@ -135,7 +135,7 @@ class PropostasWindowPart7:
     def desabilitar_campos_adicionais(self, tipo_proposta):
         """Desabilita campos adicionais quando produto não está selecionado"""
         # ⭐⭐ DESABILITAR VALOR DE TROCO
-        if tipo_proposta in ["Refin", "Solicitação Interna"] and hasattr(self, 'troco_inputs') and tipo_proposta in self.troco_inputs:
+        if tipo_proposta in ["Refin", "Saque Direcionado", "Solicitação Interna"] and hasattr(self, 'troco_inputs') and tipo_proposta in self.troco_inputs:
             self.troco_inputs[tipo_proposta].setEnabled(False)
             self.troco_inputs[tipo_proposta].setText("")
             self.troco_inputs[tipo_proposta].setPlaceholderText("Selecione o produto primeiro")
@@ -169,7 +169,7 @@ class PropostasWindowPart7:
             
             # ⭐⭐ VERIFICAR SE VALOR DE TROCO FOI PREENCHIDO (para habilitar flags)
             troco_preenchido = True
-            if tipo_proposta in ["Refin", "Solicitação Interna"]:
+            if tipo_proposta in ["Refin", "Saque Direcionado", "Solicitação Interna"]:
                 if hasattr(self, 'troco_inputs') and tipo_proposta in self.troco_inputs:
                     valor_troco = self.troco_inputs[tipo_proposta].text().strip()
                     troco_preenchido = bool(valor_troco and valor_troco != "0,00")
@@ -228,7 +228,7 @@ class PropostasWindowPart7:
         if hasattr(self, 'observacoes_inputs') and tipo_proposta in self.observacoes_inputs:
             dados['observacoes'] = self.observacoes_inputs[tipo_proposta].text()
 
-        if tipo_proposta in ["Refin", "Solicitação Interna"] and hasattr(self, 'troco_inputs') and tipo_proposta in self.troco_inputs:
+        if tipo_proposta in ["Refin", "Saque Direcionado", "Solicitação Interna"] and hasattr(self, 'troco_inputs') and tipo_proposta in self.troco_inputs:
             valor_troco = self.troco_inputs[tipo_proposta].text().strip()
             
             # ⭐⭐ PRINT DO VALOR DIGITADO

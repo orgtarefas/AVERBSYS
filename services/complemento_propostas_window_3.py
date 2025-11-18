@@ -233,7 +233,7 @@ class PropostasWindowPart3:
         linha2_layout.addLayout(valor_layout)
 
         # ⭐⭐ VALOR DE TROCO (apenas para Refin e Solicitação Interna) - LARGURA FIXA
-        if tipo_proposta in ["Refin", "Solicitação Interna"]:
+        if tipo_proposta in ["Refin", "Saque Direcionado", "Solicitação Interna"]:
             troco_layout = QVBoxLayout()
             troco_layout.setSpacing(2)
             troco_layout.addWidget(QLabel("Valor de Troco:"))
