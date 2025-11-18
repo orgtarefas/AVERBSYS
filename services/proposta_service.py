@@ -31,6 +31,26 @@ class PropostaService(QObject):
         except Exception as e:
             print(f"❌ Erro ao inicializar PropostaService: {e}")
             raise
+
+    def obter_versao_sistema(self):
+        """Obtém a versão do sistema da coleção 'info' no Firebase"""
+        try:
+            # Buscar a coleção 'info'
+            info_ref = self.db.collection('info')
+            docs = info_ref.limit(1).get()
+            
+            for doc in docs:
+                info_data = doc.to_dict()
+                versao = info_data.get('ver')
+                print(f"🔍 Versão encontrada no Firebase: {versao}")
+                return versao
+            
+            print("❌ Nenhuma versão encontrada na coleção 'info'")
+            return None
+            
+        except Exception as e:
+            print(f"❌ Erro ao buscar versão do sistema: {e}")
+            return None        
     
     def criar_e_finalizar_proposta(self, numero_proposta, analista, tipo_proposta, 
                                     tarefas_concluidas, status, data_criacao, 

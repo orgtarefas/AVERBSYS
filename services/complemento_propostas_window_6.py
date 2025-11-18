@@ -150,3 +150,22 @@ class PropostasWindowPart6:
                     return True
             
             return False
+        
+    def conectar_eventos_troco(self):
+        """Conecta eventos de digitação nos inputs de troco para validação"""
+        if hasattr(self, 'troco_inputs'):
+            for tipo_proposta, input_field in self.troco_inputs.items():
+                if input_field is not None:
+                    # Conectar evento de texto alterado para validação
+                    input_field.textChanged.connect(
+                        lambda text, tp=tipo_proposta: self.validar_apos_troco(text, tp)
+                    )
+                    print(f"🔧 Evento de validação conectado para troco input: {tipo_proposta}")
+
+    def validar_apos_troco(self, text, tipo_proposta):
+        """Valida os botões após digitar no campo de troco"""
+        print(f"💰 Digitando no Troco ({tipo_proposta}): '{text}'")
+        
+        # Validar estado dos botões após digitar no troco
+        if hasattr(self, 'validar_botoes_apos_mudanca_filtro'):
+            self.validar_botoes_apos_mudanca_filtro(tipo_proposta)        

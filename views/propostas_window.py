@@ -71,6 +71,7 @@ class PropostasWindow(QWidget,
         self.timer_duracao = QTimer()
         self.timer_duracao.timeout.connect(self.atualizar_duracao_display)
         self.init_ui()
+        QTimer.singleShot(100, self.conectar_eventos_troco)
     
     def init_ui(self):
         # DEFINIR ÍCONE DA JANELA

@@ -2,8 +2,9 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
                              QLineEdit, QPushButton, QFrame, QMessageBox,
                              QProgressBar, QDialog, QCheckBox)  
 from PyQt5.QtCore import pyqtSignal, Qt, QSettings
-from PyQt5.QtGui import QFont, QPixmap, QIcon
+from PyQt5.QtGui import QPixmap, QIcon
 from utils.styles import get_login_styles
+from services.proposta_service import PropostaService
 import sys
 import os
 
@@ -21,10 +22,65 @@ class LoginWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.settings = QSettings("AVERBSYS", "LoginApp")
+        self.proposta_service = PropostaService() 
+        self.versao_local = "0.2"  # versão
         self.init_ui()
         self.load_saved_credentials()
+        self.verificar_versao_sistema()
 
+    def verificar_versao_sistema(self):
+        """Verifica se a versão local é compatível com a do Firebase"""
+        try:
+            print("🔍 Verificando versão do sistema...")
+            versao_firebase = self.proposta_service.obter_versao_sistema()
+            
+            if versao_firebase:
+                print(f"📊 Versão Local: {self.versao_local} | Versão Firebase: {versao_firebase}")
+                
+                if versao_firebase != self.versao_local:
+                    self.mostrar_erro_versao(versao_firebase)
+                    return False
+                else:
+                    print("✅ Versão compatível!")
+                    return True
+            else:
+                print("⚠️  Não foi possível verificar a versão do Firebase")
+                return True  # Permite login mesmo sem conseguir verificar
+                
+        except Exception as e:
+            print(f"❌ Erro ao verificar versão: {e}")
+            return True  # Permite login em caso de erro        
+
+    def mostrar_erro_versao(self, versao_firebase):
+        """Mostra mensagem de erro de versão e bloqueia o login"""
+        mensagem = f"""
+        ⚠️ **ATUALIZAÇÃO NECESSÁRIA**
+
+        A versão do sistema local (v{self.versao_local}) não é compatível 
+        com a versão do servidor (v{versao_firebase}).
+
+        **Por favor, entre em contato com a equipe de desenvolvimento 
+        para obter a versão mais recente do sistema.**
+        """
         
+        msg_box = QMessageBox()
+        msg_box.setWindowTitle("Versão Incompatível")
+        msg_box.setIcon(QMessageBox.Critical)
+        msg_box.setTextFormat(Qt.RichText)
+        msg_box.setText(mensagem)
+        
+        # Tentar carregar o ícone
+        try:
+            msg_box.setWindowIcon(QIcon(resource_path('assets/logo.png')))
+        except:
+            pass
+            
+        # Botão personalizado
+        btn_ok = msg_box.addButton("Fechar Sistema", QMessageBox.AcceptRole)
+        msg_box.exec_()
+        
+        # Fechar o sistema
+        sys.exit(1)        
     
     def init_ui(self):
         self.setStyleSheet(get_login_styles())
@@ -244,6 +300,10 @@ class LoginWindow(QWidget):
         self.settings.sync()
 
     def attempt_login(self):
+        # ⭐⭐ VERIFICAR VERSÃO ANTES DO LOGIN
+        if not self.verificar_versao_sistema():
+            return
+            
         username = self.username_input.text().strip()
         password = self.password_input.text().strip()
         
@@ -334,7 +394,7 @@ class LoginWindow(QWidget):
         titulo.setAlignment(Qt.AlignCenter)
         layout.addWidget(titulo)
         
-        versao = QLabel("Versão 0.1")
+        versao = QLabel(f"Versão {self.versao_local}")  # ⭐⭐ USAR VARIÁVEL DA VERSÃO
         versao.setObjectName("info")
         versao.setAlignment(Qt.AlignCenter)
         layout.addWidget(versao)

@@ -31,8 +31,8 @@ class PropostasWindowPart9:
         troco_preenchido = True  # Por padrão é True (não obrigatório)
         if tipo_proposta in ["Refin", "Solicitação Interna"]:
             troco_valor = dados_filtro.get('valor_troco', '')
-            # Verificar se o campo existe e não está vazio
-            troco_preenchido = bool(troco_valor and troco_valor.strip() and troco_valor != '0,00')
+            # Verificar se o campo existe, não está vazio e é maior que "0,00"
+            troco_preenchido = bool(troco_valor and troco_valor.strip() and troco_valor != "0,00")
             print(f"🔍 Validação Valor de Troco: '{troco_valor}' -> Preenchido: {troco_preenchido}")
         
         todos_preenchidos = regiao_preenchida and convenio_preenchido and produto_preenchido and troco_preenchido
@@ -231,6 +231,7 @@ class PropostasWindowPart9:
             # Para aprovação, usar o fluxo normal
             self.finalizar_proposta_sem_motivo(tipo_proposta, status)
 
+
     def finalizar_proposta_sem_motivo(self, tipo_proposta, status):
         # VALIDAÇÃO OBRIGATÓRIA DOS FILTROS (para APROVAR e RECUSAR)
         if not self.verificar_filtros_preenchidos(tipo_proposta):
@@ -288,10 +289,12 @@ class PropostasWindowPart9:
         dados_filtro['unidade_prazo'] = "Meses"
         dados_filtro['observacoes'] = self.observacoes_inputs.get(tipo_proposta, "").text() if hasattr(self, 'observacoes_inputs') and tipo_proposta in self.observacoes_inputs else ""
         
-        # ⭐⭐ ADICIONAR VALOR DE TROCO (apenas para Refin e Solicitação Interna)
-        if tipo_proposta in ["Refin", "Solicitação Interna"]:
-            dados_filtro['valor_troco'] = self.troco_inputs.get(tipo_proposta, "").text() if hasattr(self, 'troco_inputs') and tipo_proposta in self.troco_inputs else ""
-            dados_filtro['moeda_troco'] = "R$"
+        # ⭐⭐ PRINT PARA VERIFICAR O QUE SERÁ ENVIADO PARA O FIREBASE
+        print(f"🔥 DADOS QUE SERÃO ENVIADOS PARA O FIREBASE:")
+        print(f"   - Tipo: {tipo_final}")
+        print(f"   - Número: {numero}")
+        print(f"   - Valor de Troco: '{dados_filtro.get('valor_troco', 'N/A')}'")
+        print(f"   - Status: {status}")
         
         # Criar e finalizar proposta
         self.proposta_service.criar_e_finalizar_proposta(
@@ -305,6 +308,7 @@ class PropostasWindowPart9:
             duracao_total,
             dados_filtro
         )
+
 
 # ⭐⭐ CLASSE MotivoRecusaDialog DENTRO DO MESMO ARQUIVO
 class MotivoRecusaDialog(QDialog):
