@@ -1,5 +1,4 @@
 from config.firebase_config import FirebaseManager
-from models.proposta_model import PropostaModel
 from PyQt5.QtCore import QObject, pyqtSignal
 from datetime import datetime, time
 from google.cloud.firestore_v1 import FieldFilter
@@ -53,11 +52,7 @@ class PropostaService(QObject):
             
             colecao = colecoes_map.get(tipo_proposta)
             
-            # ⭐⭐ DEBUG: Verificar qual coleção está sendo selecionada
-            print(f"🔍 Tipo de proposta recebido: '{tipo_proposta}'")
-            print(f"🔍 Coleção mapeada: '{colecao}'")
-            print(f"🔍 Mapeamento completo: {colecoes_map}")
-            
+
             if not colecao:
                 # ⭐⭐ CORREÇÃO: Não usar fallback, mostrar erro
                 error_msg = f"Tipo de proposta não mapeado: {tipo_proposta}"
@@ -65,16 +60,6 @@ class PropostaService(QObject):
                 self.proposta_criada.emit(False, error_msg)
                 return
             
-            print(f"💾 Salvando proposta na coleção: {colecao}")
-            print(f"📋 Dados da proposta:")
-            print(f"   Número: {numero_proposta}")
-            print(f"   Analista: {analista}")
-            print(f"   Tipo: {tipo_proposta}")
-            print(f"   Status: {status}")
-            print(f"   Data criação: {data_criacao}")
-            print(f"   Data conclusão: {data_conclusao}")
-            print(f"   Duração: {duracao_total}")
-            print(f"   Tarefas: {tarefas_concluidas}")
             
             # Processar dados dos filtros
             filtros_processados = {}
@@ -207,12 +192,10 @@ class PropostaService(QObject):
             
             for colecao_nome, tipo_proposta in colecoes_reais.items():
                 try:
-                    print(f"🔍 Buscando na coleção: {colecao_nome}")
                     docs = self.db.collection(colecao_nome).get()
                     
                     for doc in docs:
                         proposta_data = doc.to_dict()
-                        print(f"📄 Documento encontrado em {colecao_nome}: {doc.id}")
                         
                         # Converter datas
                         proposta_data = self._converter_datas_proposta(proposta_data)
@@ -238,7 +221,7 @@ class PropostaService(QObject):
                         }
                         
                         propostas.append(proposta_formatada)
-                        print(f"   ✅ Nº: {proposta_formatada['numero_proposta']}, Tipo: {proposta_formatada['tipo_proposta']}, Status: {proposta_formatada['status']}")
+
                         
                 except Exception as e:
                     print(f"❌ Erro ao buscar na coleção {colecao_nome}: {e}")
