@@ -82,7 +82,6 @@ class PropostasWindowPart6:
             # Formato incompleto ou inválido
             if texto:  # Só mostra vermelho se já digitou algo
                 input_field.setStyleSheet("border: 2px solid #dc3545;")
-                print(f"❌ Formato inválido: {texto}")
             
             # Desabilitar tudo se formato não estiver completo
             self.regiao_combos[tipo_proposta].setEnabled(False)
@@ -150,5 +149,4 @@ class PropostasWindowPart6:
                     print("✅ Formato válido para outras abas: 00-00000000000")
                     return True
             
-            print("❌ Formato inválido para outras abas")
             return False
