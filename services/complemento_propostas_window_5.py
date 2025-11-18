@@ -1,15 +1,9 @@
-from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
-                             QLineEdit, QPushButton, QFrame, QMessageBox,
-                             QTableWidget, QTableWidgetItem, QHeaderView,
-                             QTabWidget, QProgressBar, QComboBox, QCheckBox,
-                             QGroupBox, QGridLayout, QScrollArea, QDateEdit,
-                             QFormLayout, QFileDialog, QDialog, QListWidget,
-                             QListWidgetItem, QDialogButtonBox, QSizePolicy)
-from PyQt5.QtCore import Qt, pyqtSignal, QTimer, QDate
-from PyQt5.QtGui import QIntValidator, QPixmap, QIcon
+from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
+                             QFrame, QTableWidget, QHeaderView, QComboBox, QDateEdit)
+from PyQt5.QtCore import Qt, QDate
 import os
 import sys
-from datetime import datetime, timedelta
+
 
 class PropostasWindowPart5:
     """Parte 5 - Criação da aba de histórico e filtros"""

@@ -18,6 +18,7 @@ from services.complemento_propostas_window_9 import PropostasWindowPart9
 from services.complemento_propostas_window_10 import PropostasWindowPart10
 from utils.styles import get_propostas_styles
 
+
 def resource_path(relative_path):
     """Get absolute path to resource, works for dev and for PyInstaller"""
     try:

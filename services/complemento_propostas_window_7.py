@@ -1,15 +1,5 @@
-from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
-                             QLineEdit, QPushButton, QFrame, QMessageBox,
-                             QTableWidget, QTableWidgetItem, QHeaderView,
-                             QTabWidget, QProgressBar, QComboBox, QCheckBox,
-                             QGroupBox, QGridLayout, QScrollArea, QDateEdit,
-                             QFormLayout, QFileDialog, QDialog, QListWidget,
-                             QListWidgetItem, QDialogButtonBox, QSizePolicy)
-from PyQt5.QtCore import Qt, pyqtSignal, QTimer, QDate
-from PyQt5.QtGui import QIntValidator, QPixmap, QIcon
 import os
 import sys
-from datetime import datetime, timedelta
 
 class PropostasWindowPart7:
     """Parte 7 - Métodos de manipulação de filtros (região, convênio, produto)"""
@@ -144,7 +134,33 @@ class PropostasWindowPart7:
             dados['observacoes'] = self.observacoes_inputs[tipo_proposta].text()
 
         if tipo_proposta in ["Refin", "Solicitação Interna"] and hasattr(self, 'troco_inputs') and tipo_proposta in self.troco_inputs:
-            dados['valor_troco'] = self.troco_inputs[tipo_proposta].text()
+            valor_troco = self.troco_inputs[tipo_proposta].text().strip()
+            
+            # ⭐⭐ PRINT DO VALOR DIGITADO
+            print(f"🔍 Valor de Troco Digitado ({tipo_proposta}): '{valor_troco}'")
+            
+            # ⭐⭐ VALIDAÇÃO SIMPLES - REMOVER CARACTERES INVÁLIDOS
+            # Remover pontos e outros caracteres não numéricos, exceto vírgula
+            valor_limpo = ''.join(c for c in valor_troco if c.isdigit() or c == ',')
+            
+            # Garantir formatação básica
+            if valor_limpo and ',' not in valor_limpo:
+                valor_limpo = valor_limpo + ",00"
+            elif valor_limpo and ',' in valor_limpo:
+                partes = valor_limpo.split(',')
+                if len(partes) > 1:
+                    # Garantir 2 dígitos decimais
+                    parte_decimal = partes[1][:2].ljust(2, '0')
+                    valor_limpo = partes[0] + ',' + parte_decimal
+            
+            # Se estiver vazio, usar "0,00"
+            if not valor_limpo:
+                valor_limpo = "0,00"
+            
+            # ⭐⭐ PRINT DO VALOR AJUSTADO
+            print(f"✅ Valor de Troco Ajustado ({tipo_proposta}): '{valor_limpo}'")
+            
+            dados['valor_troco'] = valor_limpo
             dados['moeda_troco'] = "R$"
         
         return dados

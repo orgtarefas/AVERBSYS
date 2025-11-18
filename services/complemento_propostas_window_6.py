@@ -1,15 +1,5 @@
-from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
-                             QLineEdit, QPushButton, QFrame, QMessageBox,
-                             QTableWidget, QTableWidgetItem, QHeaderView,
-                             QTabWidget, QProgressBar, QComboBox, QCheckBox,
-                             QGroupBox, QGridLayout, QScrollArea, QDateEdit,
-                             QFormLayout, QFileDialog, QDialog, QListWidget,
-                             QListWidgetItem, QDialogButtonBox, QSizePolicy)
-from PyQt5.QtCore import Qt, pyqtSignal, QTimer, QDate
-from PyQt5.QtGui import QIntValidator, QPixmap, QIcon
 import os
 import sys
-from datetime import datetime, timedelta
 
 class PropostasWindowPart6:
     """Parte 6 - Métodos de validação e formatação (CPF, valor, contrato)"""
@@ -74,11 +64,11 @@ class PropostasWindowPart6:
         # Limpar estilo anterior
         input_field.setStyleSheet("")
         
-        print(f"🔍 Validando formato: '{texto}' | Tipo: {tipo_proposta}")
+       # print(f"🔍 Validando formato: '{texto}' | Tipo: {tipo_proposta}")
         
         # Verificar se o formato está completo
         formato_completo = self.verificar_formato_completo(texto, tipo_proposta)
-        print(f"📋 Formato completo: {formato_completo}")
+       # print(f"📋 Formato completo: {formato_completo}")
         
         if formato_completo:
             # Formato válido - estilo verde
@@ -120,7 +110,6 @@ class PropostasWindowPart6:
 
     def verificar_formato_completo(self, texto, tipo_proposta):
         """Verifica se o formato está completo baseado no tipo"""
-        print(f"🔎 Verificando formato completo: '{texto}' | Tipo: {tipo_proposta}")
         
         if tipo_proposta == "Solicitação Interna":
             # ⭐⭐ ACEITA DOIS FORMATOS ⭐⭐

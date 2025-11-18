@@ -1,18 +1,11 @@
-from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
-                             QLineEdit, QPushButton, QFrame, QMessageBox,
-                             QTableWidget, QTableWidgetItem, QHeaderView,
-                             QTabWidget, QProgressBar, QComboBox, QCheckBox,
-                             QGroupBox, QGridLayout, QScrollArea, QDateEdit,
-                             QFormLayout, QFileDialog, QDialog, QListWidget,
-                             QListWidgetItem, QDialogButtonBox, QSizePolicy)
-from PyQt5.QtCore import Qt, pyqtSignal, QTimer, QDate
-from PyQt5.QtGui import QIntValidator, QPixmap, QIcon
+from PyQt5.QtWidgets import (QVBoxLayout, QLabel, QMessageBox,
+                             QDialog, QListWidget, QListWidgetItem, QDialogButtonBox)
+from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtGui import QIcon
+from datetime import datetime
+from utils.motivos_recusa import get_motivos_recusa
 import os
 import sys
-from datetime import datetime, timedelta
-
-# ⭐⭐ ADICIONAR IMPORTS NECESSÁRIOS
-from utils.motivos_recusa import get_motivos_recusa
 
 class PropostasWindowPart9:
     """Parte 9 - Métodos de finalização de propostas (aprovação, recusa) e MotivoRecusaDialog"""
@@ -61,11 +54,7 @@ class PropostasWindowPart9:
         if self.proposta_em_andamento and tipo_proposta == self.tipo_proposta_atual:
             todas_concluidas = self.verificar_todas_tarefas_concluidas(tipo_proposta)
             filtros_preenchidos = self.verificar_filtros_preenchidos(tipo_proposta)
-            
-            # ⭐⭐ CORREÇÃO: LÓGICA SEPARADA PARA CADA BOTÃO
-            # APROVAR: precisa de TODAS as tarefas + filtros preenchidos
-            # RECUSAR: precisa APENAS dos filtros preenchidos (NÃO depende de tarefas)
-            
+                       
             # Botão APROVAR: depende de tarefas + filtros
             self.aprovar_buttons[tipo_proposta].setEnabled(todas_concluidas and filtros_preenchidos)
             
@@ -100,7 +89,6 @@ class PropostasWindowPart9:
     
     def recusar_proposta(self, tipo_proposta):
         """Abre popup para selecionar motivo da recusa"""
-        # ⭐⭐ NÃO VALIDAR TAREFAS PARA RECUSA
         # Apenas verificar filtros obrigatórios
         if not self.verificar_filtros_preenchidos(tipo_proposta):
             mensagem_erro = "Preencha todos os filtros obrigatórios:\n• Região\n• Convênio\n• Produto"
