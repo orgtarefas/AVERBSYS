@@ -350,9 +350,8 @@ class PropostaService(QObject):
             print(f"Erro ao listar propostas com filtros: {e}")
             return []
     
-    # services/proposta_service.py (MÉTODO MELHORADO)
     def listar_propostas_simples_filtro(self, data_inicio=None, data_fim=None, analista=None):
-        """Lista propostas com filtros simples para o histórico - VERSÃO MELHORADA"""
+        """Lista propostas com filtros simples para o histórico"""
         try:
             print(f"🔍 Filtrando propostas - Data: {data_inicio} a {data_fim}, Analista: {analista}")
             
@@ -366,33 +365,20 @@ class PropostaService(QObject):
                     try:
                         data_criacao = datetime.strptime(data_criacao, '%Y-%m-%d %H:%M:%S')
                     except:
-                        try:
-                            data_criacao = datetime.fromisoformat(data_criacao.replace('Z', '+00:00'))
-                        except:
-                            continue
+                        continue
                 
                 # Aplicar filtro de data
                 if data_inicio and data_criacao:
-                    if hasattr(data_criacao, 'date'):
-                        data_criacao_date = data_criacao.date()
-                    else:
-                        data_criacao_date = data_criacao
-                        
-                    if data_criacao_date < data_inicio:
+                    if data_criacao.date() < data_inicio:
                         continue
                 
                 if data_fim and data_criacao:
-                    if hasattr(data_criacao, 'date'):
-                        data_criacao_date = data_criacao.date()
-                    else:
-                        data_criacao_date = data_criacao
-                        
-                    if data_criacao_date > data_fim:
+                    if data_criacao.date() > data_fim:
                         continue
                 
-                # Aplicar filtro de analista
-                if analista and analista != "todos":
-                    if proposta.get('analista') != analista:
+                # ⭐⭐ CORREÇÃO: Aplicar filtro de analista sempre
+                if analista:
+                    if analista != "todos" and proposta.get('analista') != analista:
                         continue
                 
                 propostas_filtradas.append(proposta)
@@ -402,8 +388,6 @@ class PropostaService(QObject):
             
         except Exception as e:
             print(f"❌ Erro ao filtrar propostas: {e}")
-            import traceback
-            traceback.print_exc()
             return []
         
     def _converter_datas_proposta(self, proposta_data):

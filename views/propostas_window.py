@@ -105,9 +105,10 @@ class PropostasWindow(QWidget,
             QTabBar::tab {
                 background-color: #E1E1E1;
                 border: 1px solid #C4C4C3;
-                padding: 6px 12px;
+                padding: 8px 16px;  
                 margin-right: 2px;
                 font-size: 11px;
+                min-width: 100px;   
             }
             QTabBar::tab:selected {
                 background-color: #FFFFFF;

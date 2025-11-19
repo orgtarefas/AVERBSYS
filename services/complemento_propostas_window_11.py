@@ -51,36 +51,39 @@ class PropostasWindowPart11:
             self.tma_data_inicio = QDateEdit()
             self.tma_data_inicio.setDate(QDate.currentDate().addDays(-30))
             self.tma_data_inicio.setCalendarPopup(True)
-            self.tma_data_inicio.setFixedWidth(100)
+            self.tma_data_inicio.setFixedWidth(120)  # ⭐⭐ AUMENTADO de 100 para 120
             header_layout.addWidget(self.tma_data_inicio)
             
             header_layout.addWidget(QLabel("até"))
             self.tma_data_fim = QDateEdit()
             self.tma_data_fim.setDate(QDate.currentDate())
             self.tma_data_fim.setCalendarPopup(True)
-            self.tma_data_fim.setFixedWidth(100)
+            self.tma_data_fim.setFixedWidth(120)  # ⭐⭐ AUMENTADO de 100 para 120
             header_layout.addWidget(self.tma_data_fim)
             
             # Analista
             header_layout.addWidget(QLabel("Analista:"))
             self.tma_analista_combo = QComboBox()
-            self.tma_analista_combo.setFixedWidth(150)
+            self.tma_analista_combo.setFixedWidth(160)  # ⭐⭐ AUMENTADO de 150 para 160
             header_layout.addWidget(self.tma_analista_combo)
             
             # Botões
             self.btn_extrair_tma = QPushButton("Extrair Relatório")
-            self.btn_extrair_tma.setFixedWidth(120)
+            self.btn_extrair_tma.setFixedWidth(140)  # ⭐⭐ AUMENTADO de 120 para 140
             self.btn_extrair_tma.clicked.connect(self.extrair_relatorio_tma)
             header_layout.addWidget(self.btn_extrair_tma)
             
-            self.btn_enviar_teams = QPushButton("Enviar TEAMS")
-            self.btn_enviar_teams.setFixedWidth(120)
-            self.btn_enviar_teams.clicked.connect(self.enviar_teams_tma)
-            header_layout.addWidget(self.btn_enviar_teams)
+            # ⭐⭐ BOTÃO ENVIAR TEAMS - APENAS PARA GERENTE E DEV
+            perfil = self.user_data.get('perfil', '').lower()
+            if perfil not in ['supervisor']:
+                self.btn_enviar_teams = QPushButton("Enviar TEAMS")
+                self.btn_enviar_teams.setFixedWidth(140)  # ⭐⭐ AUMENTADO de 120 para 140
+                self.btn_enviar_teams.clicked.connect(self.enviar_teams_tma)
+                header_layout.addWidget(self.btn_enviar_teams)
             
             # ⭐⭐ BOTÃO SAIR TMA
             self.btn_sair_tma = QPushButton("🚪 SAIR TMA")
-            self.btn_sair_tma.setFixedWidth(100)
+            self.btn_sair_tma.setFixedWidth(120)  # ⭐⭐ AUMENTADO de 100 para 120
             self.btn_sair_tma.setStyleSheet("""
                 QPushButton {
                     background-color: #dc3545;
@@ -105,12 +108,31 @@ class PropostasWindowPart11:
             self.tabela_tma.setColumnCount(4)
             self.tabela_tma.setHorizontalHeaderLabels(["Analista", "Qtd Contratos", "Duração Total", "TMA"])
             
-            # Configurar cabeçalho
+            # ⭐⭐ AUMENTAR ALTURA DO CABEÇALHO DA TABELA
             header = self.tabela_tma.horizontalHeader()
+            header.setDefaultSectionSize(120)  # ⭐⭐ NOVO: largura padrão das colunas
+            header.setMinimumSectionSize(100)  # ⭐⭐ NOVO: largura mínima
+            
+            # Configurar cabeçalho individualmente
             header.setSectionResizeMode(0, QHeaderView.Stretch)
             header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
             header.setSectionResizeMode(2, QHeaderView.ResizeToContents)
             header.setSectionResizeMode(3, QHeaderView.ResizeToContents)
+            
+            # ⭐⭐ AUMENTAR ALTURA DAS LINHAS DO CABEÇALHO
+            self.tabela_tma.verticalHeader().setDefaultSectionSize(30)  # ⭐⭐ AUMENTADO
+            self.tabela_tma.setStyleSheet("""
+                QTableWidget {
+                    font-size: 11px;
+                }
+                QHeaderView::section {
+                    background-color: #f8f9fa;
+                    padding: 8px;
+                    border: 1px solid #dee2e6;
+                    font-weight: bold;
+                    font-size: 11px;
+                }
+            """)
             
             tma_frame_layout.addWidget(self.tabela_tma)
             
@@ -119,11 +141,9 @@ class PropostasWindowPart11:
             # Inicialmente escondido
             self.tma_widget.setVisible(False)
             
-            # Adiciona o widget TMA ao layout do histórico (após os filtros e antes da tabela)
+            # Adiciona o widget TMA ao layout do histórico
             if hasattr(self, 'historico_table'):
-                # Encontra o layout pai da tabela histórica
                 parent_layout = self.historico_table.parent().layout()
-                # Encontra o índice da tabela histórica
                 for i in range(parent_layout.count()):
                     if parent_layout.itemAt(i).widget() == self.historico_table:
                         parent_layout.insertWidget(i, self.tma_widget)
@@ -152,19 +172,14 @@ class PropostasWindowPart11:
             # Mostrar widget TMA
             self.tma_widget.setVisible(True)
             
+            # ⭐⭐ OCULTAR BOTÃO TMA E MOSTRAR SAIR TMA
+            if hasattr(self, 'btn_tma_historico'):
+                self.btn_tma_historico.setVisible(False)
+            
             # ⭐⭐ TRAVAR TODAS AS ABAS EXCETO HISTÓRICO
             self.travar_abas(True)
             
-            # ⭐⭐ MUDAR O BOTÃO TMA PARA MODO ATIVO
-            self.btn_tma_historico.setStyleSheet("""
-                QPushButton {
-                    background-color: #28a745;
-                    color: white;
-                    font-weight: bold;
-                    border: 2px solid #218838;
-                }
-            """)
-            self.btn_tma_historico.setText("📈 TMA ATIVO")
+            # ⭐⭐ REMOVIDO: self.btn_tma_historico.setText("📈 TMA ATIVO")
             
             # ⭐⭐ OCULTAR OUTROS ELEMENTOS DO HISTÓRICO
             if hasattr(self, 'historico_table'):
@@ -178,19 +193,21 @@ class PropostasWindowPart11:
             
         except Exception as e:
             print(f"❌ Erro ao entrar no modo TMA: {e}")
-    
+
     def sair_tma(self):
         """Sai do modo TMA - destrava abas e volta ao normal"""
         try:
             # Esconder widget TMA
             self.tma_widget.setVisible(False)
             
+            # ⭐⭐ MOSTRAR BOTÃO TMA E OCULTAR SAIR TMA
+            if hasattr(self, 'btn_tma_historico'):
+                self.btn_tma_historico.setVisible(True)
+            
             # ⭐⭐ DESTRAVAR TODAS AS ABAS
             self.travar_abas(False)
             
-            # ⭐⭐ VOLTAR BOTÃO TMA AO NORMAL
-            self.btn_tma_historico.setStyleSheet("")
-            self.btn_tma_historico.setText("📈 TMA")
+            # ⭐⭐ REMOVIDO: self.btn_tma_historico.setText("📈 TMA")
             
             # ⭐⭐ MOSTRAR ELEMENTOS DO HISTÓRICO NOVAMENTE
             if hasattr(self, 'historico_table'):

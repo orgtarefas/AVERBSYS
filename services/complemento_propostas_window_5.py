@@ -89,13 +89,13 @@ class PropostasWindowPart5:
         self.data_inicio.setDate(QDate.currentDate().addDays(-30))
         self.data_inicio.setCalendarPopup(True)
         self.data_inicio.setObjectName("dateField")
-        self.data_inicio.setFixedWidth(100)
+        self.data_inicio.setFixedWidth(120)
         
         self.data_fim = QDateEdit()
         self.data_fim.setDate(QDate.currentDate())
         self.data_fim.setCalendarPopup(True)
         self.data_fim.setObjectName("dateField")
-        self.data_fim.setFixedWidth(100)
+        self.data_fim.setFixedWidth(120)
         
         periodo_layout.addWidget(QLabel("De:"))
         periodo_layout.addWidget(self.data_inicio)
@@ -108,7 +108,7 @@ class PropostasWindowPart5:
         
         self.combo_analista = QComboBox()
         self.combo_analista.setObjectName("comboField")
-        self.combo_analista.setFixedWidth(150)
+        self.combo_analista.setFixedWidth(160)
         
         # Se for analista, mostra apenas o próprio login
         if self.user_data['perfil'] == 'Analista':
@@ -131,7 +131,7 @@ class PropostasWindowPart5:
         
         self.exportar_button = QPushButton("📊 Exportar")
         self.exportar_button.setObjectName("successButton")
-        self.exportar_button.setFixedWidth(100)
+        self.exportar_button.setFixedWidth(120)
         self.exportar_button.clicked.connect(self.exportar_para_xlsx)
         
         # ⭐⭐ BOTÃO TMA ADICIONADO AQUI
@@ -166,6 +166,13 @@ class PropostasWindowPart5:
     def carregar_analistas(self):
         """Carrega a lista de analistas disponíveis (apenas para perfis não Analista)"""
         try:
+            # ⭐⭐ CORREÇÃO: Analista só vê ele mesmo
+            if self.user_data['perfil'] == 'Analista':
+                self.combo_analista.clear()
+                self.combo_analista.addItem(self.user_data['login'])
+                self.combo_analista.setEnabled(False)
+                return
+                
             # Buscar todos os analistas únicos do banco de dados
             propostas = self.proposta_service.listar_todas_propostas()
             analistas = set()
@@ -176,6 +183,9 @@ class PropostasWindowPart5:
             
             # Ordenar e adicionar ao combobox
             analistas_ordenados = sorted(list(analistas))
+            
+            self.combo_analista.clear()
+            self.combo_analista.addItem("Todos", "todos")
             for analista in analistas_ordenados:
                 self.combo_analista.addItem(analista, analista)
                 
@@ -187,7 +197,12 @@ class PropostasWindowPart5:
         try:
             data_inicio = self.data_inicio.date().toPyDate()
             data_fim = self.data_fim.date().toPyDate()
-            analista = self.combo_analista.currentData()
+            
+            # ⭐⭐ CORREÇÃO: Analista sempre filtra apenas por ele mesmo
+            if self.user_data['perfil'] == 'Analista':
+                analista = self.user_data['login']
+            else:
+                analista = self.combo_analista.currentData()
             
             print(f"🔍 Aplicando filtros - Data: {data_inicio} a {data_fim}, Analista: {analista}")
             
