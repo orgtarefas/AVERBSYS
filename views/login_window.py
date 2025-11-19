@@ -24,7 +24,7 @@ class LoginWindow(QWidget):
         self.settings = QSettings("AVERBSYS", "LoginApp")
         self.proposta_service = PropostaService() 
         
-        # ⭐⭐ VERSÃO AGORA VEM DO MAIN.PY
+        # ⭐⭐ VERSÃO VEM DO MAIN.PY
         try:
             from main import VERSAO_SISTEMA
             self.versao_local = VERSAO_SISTEMA
