@@ -23,7 +23,16 @@ class LoginWindow(QWidget):
         super().__init__()
         self.settings = QSettings("AVERBSYS", "LoginApp")
         self.proposta_service = PropostaService() 
-        self.versao_local = "0.3"  # versão
+        
+        # ⭐⭐ VERSÃO AGORA VEM DO MAIN.PY
+        try:
+            from main import VERSAO_SISTEMA
+            self.versao_local = VERSAO_SISTEMA
+        except ImportError:
+            # Fallback caso não consiga importar
+            self.versao_local = "0.3"
+            print("⚠️  Não foi possível importar a versão do main.py, usando fallback")
+        
         self.init_ui()
         self.load_saved_credentials()
         self.verificar_versao_sistema()
@@ -80,7 +89,7 @@ class LoginWindow(QWidget):
         msg_box.exec_()
         
         # Fechar o sistema
-        sys.exit(1)        
+        sys.exit(1)
     
     def init_ui(self):
         self.setStyleSheet(get_login_styles())
@@ -394,7 +403,8 @@ class LoginWindow(QWidget):
         titulo.setAlignment(Qt.AlignCenter)
         layout.addWidget(titulo)
         
-        versao = QLabel(f"Versão {self.versao_local}")  # ⭐⭐ USAR VARIÁVEL DA VERSÃO
+        # ⭐⭐ AGORA USA A VARIÁVEL IMPORTADA
+        versao = QLabel(f"Versão {self.versao_local}")
         versao.setObjectName("info")
         versao.setAlignment(Qt.AlignCenter)
         layout.addWidget(versao)
