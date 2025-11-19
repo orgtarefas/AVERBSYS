@@ -108,10 +108,10 @@ class PropostasWindowPart11:
             self.tabela_tma.setColumnCount(4)
             self.tabela_tma.setHorizontalHeaderLabels(["Analista", "Qtd Contratos", "Duração Total", "TMA"])
             
-            # ⭐⭐ CORREÇÃO CRÍTICA: AUMENTAR SIGNIFICATIVAMENTE A ALTURA DO CABEÇALHO
+            # ⭐⭐ AUMENTAR ALTURA DO CABEÇALHO DA TABELA
             header = self.tabela_tma.horizontalHeader()
-            header.setDefaultSectionSize(120)
-            header.setMinimumSectionSize(100)
+            header.setDefaultSectionSize(120)  # ⭐⭐ NOVO: largura padrão das colunas
+            header.setMinimumSectionSize(100)  # ⭐⭐ NOVO: largura mínima
             
             # Configurar cabeçalho individualmente
             header.setSectionResizeMode(0, QHeaderView.Stretch)
@@ -119,42 +119,20 @@ class PropostasWindowPart11:
             header.setSectionResizeMode(2, QHeaderView.ResizeToContents)
             header.setSectionResizeMode(3, QHeaderView.ResizeToContents)
             
-            # ⭐⭐ CORREÇÃO: AUMENTAR MUITO A ALTURA DO CABEÇALHO VERTICAL
-            self.tabela_tma.verticalHeader().setDefaultSectionSize(35)
-            
-            # ⭐⭐ CORREÇÃO: AUMENTAR A ALTURA ESPECÍFICA DO CABEÇALHO HORIZONTAL
-            self.tabela_tma.horizontalHeader().setFixedHeight(45)  # ⭐⭐ AUMENTADO para 45px
-            
-            # ⭐⭐ CORREÇÃO: ESTILO MELHORADO PARA CABEÇALHO MAIOR
+            # ⭐⭐ ALTURA DAS LINHAS DO CABEÇALHO
+            self.tabela_tma.verticalHeader().setDefaultSectionSize(20)  
             self.tabela_tma.setStyleSheet("""
                 QTableWidget {
                     font-size: 11px;
-                    gridline-color: #dee2e6;
-                    alternate-background-color: #f8f9fa;
                 }
                 QHeaderView::section {
-                    background-color: #e9ecef;
-                    padding: 12px 8px;
+                    background-color: #f8f9fa;
+                    padding: 8px;
                     border: 1px solid #dee2e6;
                     font-weight: bold;
                     font-size: 11px;
-                    height: 45px;  /* ⭐⭐ AUMENTADO para 45px */
-                }
-                QTableWidget::item {
-                    padding: 8px;
-                    border-bottom: 1px solid #dee2e6;
-                }
-                QTableWidget::item:selected {
-                    background-color: #007bff;
-                    color: white;
                 }
             """)
-            
-            # ⭐⭐ MELHORAR A VISUALIZAÇÃO DAS COLUNAS
-            self.tabela_tma.setColumnWidth(0, 200)  # Analista
-            self.tabela_tma.setColumnWidth(1, 120)  # Qtd Contratos
-            self.tabela_tma.setColumnWidth(2, 120)  # Duração Total
-            self.tabela_tma.setColumnWidth(3, 100)  # TMA
             
             tma_frame_layout.addWidget(self.tabela_tma)
             
@@ -175,7 +153,6 @@ class PropostasWindowPart11:
             
         except Exception as e:
             print(f"❌ Erro ao criar layout TMA: {e}")
-
     
     def mostrar_tma(self):
         """Mostra/oculta a seção TMA e trava as abas"""
