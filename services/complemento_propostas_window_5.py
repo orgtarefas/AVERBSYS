@@ -89,13 +89,13 @@ class PropostasWindowPart5:
         self.data_inicio.setDate(QDate.currentDate().addDays(-30))
         self.data_inicio.setCalendarPopup(True)
         self.data_inicio.setObjectName("dateField")
-        self.data_inicio.setFixedWidth(120)
+        self.data_inicio.setFixedWidth(140)
         
         self.data_fim = QDateEdit()
         self.data_fim.setDate(QDate.currentDate())
         self.data_fim.setCalendarPopup(True)
         self.data_fim.setObjectName("dateField")
-        self.data_fim.setFixedWidth(120)
+        self.data_fim.setFixedWidth(140)
         
         periodo_layout.addWidget(QLabel("De:"))
         periodo_layout.addWidget(self.data_inicio)

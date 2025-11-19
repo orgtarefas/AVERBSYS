@@ -51,25 +51,25 @@ class PropostasWindowPart11:
             self.tma_data_inicio = QDateEdit()
             self.tma_data_inicio.setDate(QDate.currentDate().addDays(-30))
             self.tma_data_inicio.setCalendarPopup(True)
-            self.tma_data_inicio.setFixedWidth(120)  # ⭐⭐ AUMENTADO de 100 para 120
+            self.tma_data_inicio.setFixedWidth(140) 
             header_layout.addWidget(self.tma_data_inicio)
             
             header_layout.addWidget(QLabel("até"))
             self.tma_data_fim = QDateEdit()
             self.tma_data_fim.setDate(QDate.currentDate())
             self.tma_data_fim.setCalendarPopup(True)
-            self.tma_data_fim.setFixedWidth(120)  # ⭐⭐ AUMENTADO de 100 para 120
+            self.tma_data_fim.setFixedWidth(140) 
             header_layout.addWidget(self.tma_data_fim)
             
             # Analista
             header_layout.addWidget(QLabel("Analista:"))
             self.tma_analista_combo = QComboBox()
-            self.tma_analista_combo.setFixedWidth(160)  # ⭐⭐ AUMENTADO de 150 para 160
+            self.tma_analista_combo.setFixedWidth(160)  
             header_layout.addWidget(self.tma_analista_combo)
             
             # Botões
             self.btn_extrair_tma = QPushButton("Extrair Relatório")
-            self.btn_extrair_tma.setFixedWidth(140)  # ⭐⭐ AUMENTADO de 120 para 140
+            self.btn_extrair_tma.setFixedWidth(140)  
             self.btn_extrair_tma.clicked.connect(self.extrair_relatorio_tma)
             header_layout.addWidget(self.btn_extrair_tma)
             
@@ -77,13 +77,13 @@ class PropostasWindowPart11:
             perfil = self.user_data.get('perfil', '').lower()
             if perfil not in ['supervisor']:
                 self.btn_enviar_teams = QPushButton("Enviar TEAMS")
-                self.btn_enviar_teams.setFixedWidth(140)  # ⭐⭐ AUMENTADO de 120 para 140
+                self.btn_enviar_teams.setFixedWidth(140)  
                 self.btn_enviar_teams.clicked.connect(self.enviar_teams_tma)
                 header_layout.addWidget(self.btn_enviar_teams)
             
             # ⭐⭐ BOTÃO SAIR TMA
             self.btn_sair_tma = QPushButton("🚪 SAIR TMA")
-            self.btn_sair_tma.setFixedWidth(120)  # ⭐⭐ AUMENTADO de 100 para 120
+            self.btn_sair_tma.setFixedWidth(120)  
             self.btn_sair_tma.setStyleSheet("""
                 QPushButton {
                     background-color: #dc3545;
@@ -108,10 +108,10 @@ class PropostasWindowPart11:
             self.tabela_tma.setColumnCount(4)
             self.tabela_tma.setHorizontalHeaderLabels(["Analista", "Qtd Contratos", "Duração Total", "TMA"])
             
-            # ⭐⭐ AUMENTAR ALTURA DO CABEÇALHO DA TABELA
+            # ⭐⭐ CORREÇÃO CRÍTICA: AUMENTAR SIGNIFICATIVAMENTE A ALTURA DO CABEÇALHO
             header = self.tabela_tma.horizontalHeader()
-            header.setDefaultSectionSize(120)  # ⭐⭐ NOVO: largura padrão das colunas
-            header.setMinimumSectionSize(100)  # ⭐⭐ NOVO: largura mínima
+            header.setDefaultSectionSize(120)
+            header.setMinimumSectionSize(100)
             
             # Configurar cabeçalho individualmente
             header.setSectionResizeMode(0, QHeaderView.Stretch)
@@ -119,20 +119,42 @@ class PropostasWindowPart11:
             header.setSectionResizeMode(2, QHeaderView.ResizeToContents)
             header.setSectionResizeMode(3, QHeaderView.ResizeToContents)
             
-            # ⭐⭐ AUMENTAR ALTURA DAS LINHAS DO CABEÇALHO
-            self.tabela_tma.verticalHeader().setDefaultSectionSize(30)  # ⭐⭐ AUMENTADO
+            # ⭐⭐ CORREÇÃO: AUMENTAR MUITO A ALTURA DO CABEÇALHO VERTICAL
+            self.tabela_tma.verticalHeader().setDefaultSectionSize(35)
+            
+            # ⭐⭐ CORREÇÃO: AUMENTAR A ALTURA ESPECÍFICA DO CABEÇALHO HORIZONTAL
+            self.tabela_tma.horizontalHeader().setFixedHeight(45)  # ⭐⭐ AUMENTADO para 45px
+            
+            # ⭐⭐ CORREÇÃO: ESTILO MELHORADO PARA CABEÇALHO MAIOR
             self.tabela_tma.setStyleSheet("""
                 QTableWidget {
                     font-size: 11px;
+                    gridline-color: #dee2e6;
+                    alternate-background-color: #f8f9fa;
                 }
                 QHeaderView::section {
-                    background-color: #f8f9fa;
-                    padding: 8px;
+                    background-color: #e9ecef;
+                    padding: 12px 8px;
                     border: 1px solid #dee2e6;
                     font-weight: bold;
                     font-size: 11px;
+                    height: 45px;  /* ⭐⭐ AUMENTADO para 45px */
+                }
+                QTableWidget::item {
+                    padding: 8px;
+                    border-bottom: 1px solid #dee2e6;
+                }
+                QTableWidget::item:selected {
+                    background-color: #007bff;
+                    color: white;
                 }
             """)
+            
+            # ⭐⭐ MELHORAR A VISUALIZAÇÃO DAS COLUNAS
+            self.tabela_tma.setColumnWidth(0, 200)  # Analista
+            self.tabela_tma.setColumnWidth(1, 120)  # Qtd Contratos
+            self.tabela_tma.setColumnWidth(2, 120)  # Duração Total
+            self.tabela_tma.setColumnWidth(3, 100)  # TMA
             
             tma_frame_layout.addWidget(self.tabela_tma)
             
@@ -153,6 +175,7 @@ class PropostasWindowPart11:
             
         except Exception as e:
             print(f"❌ Erro ao criar layout TMA: {e}")
+
     
     def mostrar_tma(self):
         """Mostra/oculta a seção TMA e trava as abas"""
