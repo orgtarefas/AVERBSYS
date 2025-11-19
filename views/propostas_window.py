@@ -16,6 +16,7 @@ from services.complemento_propostas_window_7 import PropostasWindowPart7
 from services.complemento_propostas_window_8 import PropostasWindowPart8
 from services.complemento_propostas_window_9 import PropostasWindowPart9
 from services.complemento_propostas_window_10 import PropostasWindowPart10
+from services.complemento_propostas_window_11 import PropostasWindowPart11
 from utils.styles import get_propostas_styles
 
 
@@ -37,7 +38,8 @@ class PropostasWindow(QWidget,
                      PropostasWindowPart7,
                      PropostasWindowPart8,
                      PropostasWindowPart9,
-                     PropostasWindowPart10):
+                     PropostasWindowPart10,
+                     PropostasWindowPart11):
     
     logout_request = pyqtSignal()
     abrir_manutencao_usuarios = pyqtSignal()
@@ -149,3 +151,5 @@ class PropostasWindow(QWidget,
         # Carregar dados iniciais
         self.carregar_historico()
         self.carregar_filtros_iniciais()
+        # inicializar TMA
+        QTimer.singleShot(100, self.init_tma_tab)

@@ -228,7 +228,7 @@ class PropostasWindowPart7:
         if hasattr(self, 'observacoes_inputs') and tipo_proposta in self.observacoes_inputs:
             dados['observacoes'] = self.observacoes_inputs[tipo_proposta].text()
 
-        if tipo_proposta in ["Refin", "Saque Direcionado", "Solicitação Interna"] and hasattr(self, 'troco_inputs') and tipo_proposta in self.troco_inputs:
+        if tipo_proposta in ["Refin", "Saque Direcionado"] and hasattr(self, 'troco_inputs') and tipo_proposta in self.troco_inputs:
             valor_troco = self.troco_inputs[tipo_proposta].text().strip()
             
             # ⭐⭐ PRINT DO VALOR DIGITADO

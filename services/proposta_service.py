@@ -350,8 +350,9 @@ class PropostaService(QObject):
             print(f"Erro ao listar propostas com filtros: {e}")
             return []
     
+    # services/proposta_service.py (MÉTODO MELHORADO)
     def listar_propostas_simples_filtro(self, data_inicio=None, data_fim=None, analista=None):
-        """Lista propostas com filtros simples para o histórico"""
+        """Lista propostas com filtros simples para o histórico - VERSÃO MELHORADA"""
         try:
             print(f"🔍 Filtrando propostas - Data: {data_inicio} a {data_fim}, Analista: {analista}")
             
@@ -365,15 +366,28 @@ class PropostaService(QObject):
                     try:
                         data_criacao = datetime.strptime(data_criacao, '%Y-%m-%d %H:%M:%S')
                     except:
-                        continue
+                        try:
+                            data_criacao = datetime.fromisoformat(data_criacao.replace('Z', '+00:00'))
+                        except:
+                            continue
                 
                 # Aplicar filtro de data
                 if data_inicio and data_criacao:
-                    if data_criacao.date() < data_inicio:
+                    if hasattr(data_criacao, 'date'):
+                        data_criacao_date = data_criacao.date()
+                    else:
+                        data_criacao_date = data_criacao
+                        
+                    if data_criacao_date < data_inicio:
                         continue
                 
                 if data_fim and data_criacao:
-                    if data_criacao.date() > data_fim:
+                    if hasattr(data_criacao, 'date'):
+                        data_criacao_date = data_criacao.date()
+                    else:
+                        data_criacao_date = data_criacao
+                        
+                    if data_criacao_date > data_fim:
                         continue
                 
                 # Aplicar filtro de analista
@@ -388,6 +402,8 @@ class PropostaService(QObject):
             
         except Exception as e:
             print(f"❌ Erro ao filtrar propostas: {e}")
+            import traceback
+            traceback.print_exc()
             return []
         
     def _converter_datas_proposta(self, proposta_data):
@@ -522,3 +538,184 @@ class PropostaService(QObject):
         except Exception as e:
             print(f"Erro ao verificar proposta existente: {e}")
             return None
+        
+    def obter_dados_tma(self, data_inicio, data_fim, analista, user_data):
+        """Obtém dados para cálculo do TMA - VERSÃO FIREBASE CORRIGIDA"""
+        try:
+            print(f"🔍 Buscando dados TMA - Período: {data_inicio} a {data_fim}, Analista: {analista}")
+            
+            # Coleções do Firebase
+            colecoes_reais = {
+                'tarefas1_saquefacil': 'Saque Fácil',
+                'tarefas2_refin': 'Refin', 
+                'tarefas3_saquedirecionado': 'Saque Direcionado',
+                'tarefas4_solicitacao_interna': 'Solicitação Interna'
+            }
+            
+            dados_agrupados = {}
+            total_propostas_processadas = 0
+            
+            for colecao_nome, tipo_proposta in colecoes_reais.items():
+                try:
+                    # Buscar documentos na coleção
+                    docs = self.db.collection(colecao_nome).get()
+                    
+                    for doc in docs:
+                        proposta_data = doc.to_dict()
+                        
+                        # Converter datas
+                        proposta_data = self._converter_datas_proposta(proposta_data)
+                        
+                        # ⭐⭐ CORREÇÃO: Aceitar apenas status "Aprovada" e "Recusada"
+                        status_proposta = proposta_data.get('status', '')
+                        if status_proposta not in ['Aprovada', 'Recusada']:
+                            continue
+                        
+                        # Filtrar por data de conclusão
+                        data_conclusao = proposta_data.get('data_conclusao')
+                        if not data_conclusao:
+                            print(f"   ⚠️ Proposta sem data_conclusao: {proposta_data.get('numero_proposta', '')}")
+                            continue
+                        
+                        # Converter para string para comparação
+                        if hasattr(data_conclusao, 'strftime'):
+                            data_conclusao_str = data_conclusao.strftime('%Y-%m-%d')
+                        else:
+                            data_conclusao_str = str(data_conclusao)
+                        
+                        # Aplicar filtro de data
+                        if data_conclusao_str < data_inicio or data_conclusao_str > data_fim:
+                            continue
+                        
+                        # Filtrar por analista
+                        analista_proposta = proposta_data.get('analista', '')
+                        perfil = user_data.get('perfil', '').lower()
+                        
+                        if analista and analista != 'todos':
+                            if analista_proposta != analista:
+                                continue
+                        elif perfil not in ['gerente', 'dev']:
+                            # Para outros perfis, mostra apenas seu próprio login
+                            login_atual = user_data.get('login', '')
+                            if analista_proposta != login_atual:
+                                continue
+                        
+                        # Calcular duração em segundos
+                        duracao = proposta_data.get('duracao_total', '00:00:00')
+                        segundos = self._converter_duracao_para_segundos(duracao)
+                        
+                        # Agrupar por analista
+                        if analista_proposta not in dados_agrupados:
+                            dados_agrupados[analista_proposta] = {
+                                'qtd_contratos': 0,
+                                'duracao_total': 0
+                            }
+                        
+                        dados_agrupados[analista_proposta]['qtd_contratos'] += 1
+                        dados_agrupados[analista_proposta]['duracao_total'] += segundos
+                        total_propostas_processadas += 1
+                        
+                        # DEBUG: Mostrar proposta processada
+                        print(f"   ✅ Proposta processada: {analista_proposta} - {proposta_data.get('numero_proposta', '')} - Status: {status_proposta} - Duração: {duracao} ({segundos} segundos) - Data: {data_conclusao_str}")
+                        
+                except Exception as e:
+                    print(f"❌ Erro ao processar coleção {colecao_nome}: {e}")
+                    continue
+            
+            # Converter para o formato esperado
+            dados_tma = []
+            for analista_nome, dados in dados_agrupados.items():
+                dados_tma.append({
+                    'analista': analista_nome,
+                    'qtd_contratos': dados['qtd_contratos'],
+                    'duracao_total': dados['duracao_total']
+                })
+            
+            # Ordenar por nome do analista
+            dados_tma.sort(key=lambda x: x['analista'])
+            
+            print(f"✅ Dados TMA encontrados: {len(dados_tma)} analistas, {total_propostas_processadas} propostas processadas")
+            for item in dados_tma:
+                tma_formatado = self.calcular_tma_formatado(item['duracao_total'], item['qtd_contratos'])
+                print(f"   • {item['analista']}: {item['qtd_contratos']} contratos, {self.formatar_duracao(item['duracao_total'])} total, TMA: {tma_formatado}")
+            
+            return dados_tma
+            
+        except Exception as e:
+            print(f"❌ Erro ao obter dados TMA: {e}")
+            import traceback
+            traceback.print_exc()
+            return []
+
+    def calcular_tma_formatado(self, duracao_total_segundos, qtd_contratos):
+        """Calcula o TMA formatado para debug"""
+        if qtd_contratos == 0:
+            return "00:00:00"
+        
+        tma_segundos = duracao_total_segundos / qtd_contratos
+        horas = int(tma_segundos // 3600)
+        minutos = int((tma_segundos % 3600) // 60)
+        segundos = int(tma_segundos % 60)
+        
+        return f"{horas:02d}:{minutos:02d}:{segundos:02d}"
+
+    def formatar_duracao(self, segundos):
+        """Formata segundos para HH:MM:SS (para debug)"""
+        horas = int(segundos // 3600)
+        minutos = int((segundos % 3600) // 60)
+        segundos = int(segundos % 60)
+        return f"{horas:02d}:{minutos:02d}:{segundos:02d}"
+
+
+    def _converter_duracao_para_segundos(self, duracao_str):
+        """Converte string de duração (HH:MM:SS) para segundos"""
+        try:
+            if not duracao_str:
+                return 0
+                
+            partes = str(duracao_str).split(':')
+            if len(partes) == 3:
+                horas = int(partes[0])
+                minutos = int(partes[1])
+                segundos = int(partes[2])
+                return horas * 3600 + minutos * 60 + segundos
+            elif len(partes) == 2:
+                minutos = int(partes[0])
+                segundos = int(partes[1])
+                return minutos * 60 + segundos
+            else:
+                return int(duracao_str) if duracao_str.isdigit() else 0
+        except:
+            return 0
+
+    def obter_analistas_tma(self):
+        """Obtém lista de analistas para TMA (apenas Gerentes e Devs) - VERSÃO FIREBASE"""
+        try:
+            # Buscar usuários diretamente do Firebase
+            usuarios_ref = self.db.collection('usuarios')
+            docs = usuarios_ref.get()
+            
+            analistas = []
+            for doc in docs:
+                usuario_data = doc.to_dict()
+                perfil = usuario_data.get('perfil', '').lower()
+                status = usuario_data.get('status', '').lower()
+                
+                # Filtrar apenas Gerentes e Devs ativos
+                if perfil in ['gerente', 'dev'] and status == 'ativo':
+                    login = usuario_data.get('login', '')
+                    if login:
+                        analistas.append({'login': login})
+            
+            # Ordenar por login
+            analistas.sort(key=lambda x: x['login'])
+            
+            print(f"✅ Analistas TMA encontrados: {len(analistas)}")
+            for analista in analistas:
+                print(f"   • {analista['login']}")
+            
+            return analistas
+            
+        except Exception as e:
+            print(f"❌ Erro ao obter analistas TMA: {e}")
+            return []

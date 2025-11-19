@@ -27,9 +27,9 @@ class PropostasWindowPart9:
         convenio_preenchido = bool(dados_filtro.get('convenio', ''))
         produto_preenchido = bool(dados_filtro.get('produto', ''))
         
-        # ⭐⭐ VERIFICAR VALOR DE TROCO (obrigatório nas abas Refin e Solicitação Interna)
+        # ⭐⭐ VERIFICAR VALOR DE TROCO (obrigatório nas abas Refin e Saque Direcionado)
         troco_preenchido = True  # Por padrão é True (não obrigatório)
-        if tipo_proposta in ["Refin", "Solicitação Interna"]:
+        if tipo_proposta in ["Refin", "Saque Direcionado"]:
             troco_valor = dados_filtro.get('valor_troco', '')
             # Verificar se o campo existe, não está vazio e é maior que "0,00"
             troco_preenchido = bool(troco_valor and troco_valor.strip() and troco_valor != "0,00")
@@ -92,7 +92,7 @@ class PropostasWindowPart9:
         # Apenas verificar filtros obrigatórios
         if not self.verificar_filtros_preenchidos(tipo_proposta):
             mensagem_erro = "Preencha todos os filtros obrigatórios:\n• Região\n• Convênio\n• Produto"
-            if tipo_proposta in ["Refin", "Solicitação Interna"]:
+            if tipo_proposta in ["Refin", "Saque Direcionado"]:
                 mensagem_erro += "\n• Valor de Troco"
             mensagem_erro += "\n\nAntes de recusar a proposta."
             
@@ -110,7 +110,7 @@ class PropostasWindowPart9:
         # ⭐⭐ NÃO VALIDAR TAREFAS PARA RECUSA - apenas filtros
         if not self.verificar_filtros_preenchidos(tipo_proposta):
             mensagem_erro = "Preencha todos os filtros obrigatórios:\n• Região\n• Convênio\n• Produto"
-            if tipo_proposta in ["Refin", "Solicitação Interna"]:
+            if tipo_proposta in ["Refin", "Saque Direcionado"]:
                 mensagem_erro += "\n• Valor de Troco"
             mensagem_erro += "\n\nAntes de recusar a proposta."
             
@@ -149,7 +149,7 @@ class PropostasWindowPart9:
         # ⭐⭐ VALIDAÇÃO APENAS DOS FILTROS OBRIGATÓRIOS (não valida tarefas para recusa)
         if not self.verificar_filtros_preenchidos(tipo_proposta):
             mensagem_erro = "Preencha todos os filtros obrigatórios:\n• Região\n• Convênio\n• Produto"
-            if tipo_proposta in ["Refin", "Solicitação Interna"]:
+            if tipo_proposta in ["Refin", "Saque Direcionado"]:
                 mensagem_erro += "\n• Valor de Troco"
             mensagem_erro += "\n\nAntes de finalizar a proposta."
             
@@ -158,23 +158,22 @@ class PropostasWindowPart9:
         
         numero = self.numero_inputs[tipo_proposta].text().strip()
         
-        # VALIDAÇÃO POR TIPO
-        if not self.verificar_formato_completo(numero, tipo_proposta):
-            if tipo_proposta == "Solicitação Interna":
-                QMessageBox.warning(self, "Erro", 
-                                "Número do contrato inválido!\n"
-                                "Formatos aceitos:\n"
-                                "• 00-1234567890 (2 dígitos + 10 dígitos)\n"
-                                "• A00-1234567890 (Letra + 2 dígitos + 10 dígitos)")
-            else:
-                QMessageBox.warning(self, "Erro", 
-                                "Número do contrato inválido!\n"
-                                "Formato deve ser: 2 dígitos + 10 dígitos\n"
-                                "Exemplo: 50-1234567890")
-            return
+       # VALIDAÇÃO POR TIPO - ANTIGA POIS AGORA TEM 5 PADRÕES O CONTRATO EM "Solicitação Interna"
+       # if not self.verificar_formato_completo(numero, tipo_proposta):
+       #     if tipo_proposta == "Solicitação Interna":
+       #         QMessageBox.warning(self, "Erro", 
+       #                         "Número do contrato inválido!\n"
+       #                         "Formatos aceitos:\n"
+       #                         "• 00-1234567890 (2 dígitos + 10 dígitos)\n"
+       #                         "• A00-1234567890 (Letra + 2 dígitos + 10 dígitos)")
+       #     else:
+       #         QMessageBox.warning(self, "Erro", 
+       #                         "Número do contrato inválido!\n"
+       #                         "Formato deve ser: 2 dígitos + 10 dígitos\n"
+       #                         "Exemplo: 50-1234567890")
+       #     return
         
-        # ⭐⭐ NÃO VALIDAR TAREFAS PARA RECUSA
-        
+
         # Registrar data de conclusão
         self.data_conclusao = datetime.now()
         
@@ -204,8 +203,8 @@ class PropostasWindowPart9:
         dados_filtro['unidade_prazo'] = "Meses"
         dados_filtro['observacoes'] = self.observacoes_inputs.get(tipo_proposta, "").text() if hasattr(self, 'observacoes_inputs') and tipo_proposta in self.observacoes_inputs else ""
         
-        # Adicionar Valor de Troco (apenas para Refin e Solicitação Interna)
-        if tipo_proposta in ["Refin", "Solicitação Interna"]:
+        # Adicionar Valor de Troco (apenas para Refin e Saque Direcionado)
+        if tipo_proposta in ["Refin", "Saque Direcionado"]:
             dados_filtro['valor_troco'] = self.troco_inputs.get(tipo_proposta, "").text() if hasattr(self, 'troco_inputs') and tipo_proposta in self.troco_inputs else ""
             dados_filtro['moeda_troco'] = "R$"
         
@@ -236,7 +235,7 @@ class PropostasWindowPart9:
         # VALIDAÇÃO OBRIGATÓRIA DOS FILTROS (para APROVAR e RECUSAR)
         if not self.verificar_filtros_preenchidos(tipo_proposta):
             mensagem_erro = "Preencha todos os filtros obrigatórios:\n• Região\n• Convênio\n• Produto"
-            if tipo_proposta in ["Refin", "Solicitação Interna"]:
+            if tipo_proposta in ["Refin", "Saque Direcionado"]:
                 mensagem_erro += "\n• Valor de Troco"
             mensagem_erro += "\n\nAntes de finalizar a proposta."
             
@@ -245,20 +244,20 @@ class PropostasWindowPart9:
         
         numero = self.numero_inputs[tipo_proposta].text().strip()
         
-        # VALIDAÇÃO POR TIPO
-        if not self.verificar_formato_completo(numero, tipo_proposta):
-            if tipo_proposta == "Solicitação Interna":
-                QMessageBox.warning(self, "Erro", 
-                                "Número do contrato inválido!\n"
-                                "Formatos aceitos:\n"
-                                "• 00-1234567890 (2 dígitos + 10 dígitos)\n"
-                                "• A00-1234567890 (Letra + 2 dígitos + 10 dígitos)")
-            else:
-                QMessageBox.warning(self, "Erro", 
-                                "Número do contrato inválido!\n"
-                                "Formato deve ser: 2 dígitos + 10 dígitos\n"
-                                "Exemplo: 50-1234567890")
-            return
+        # VALIDAÇÃO POR TIPO - ANTIGA, POIS AGORA TEM 5 PADRÕES DE CONTRATO EM "Solicitação Interna"
+        #if not self.verificar_formato_completo(numero, tipo_proposta):
+        #    if tipo_proposta == "Solicitação Interna":
+        #        QMessageBox.warning(self, "Erro", 
+        #                        "Número do contrato inválido!\n"
+        #                        "Formatos aceitos:\n"
+        #                        "• 00-1234567890 (2 dígitos + 10 dígitos)\n"
+        #                        "• A00-1234567890 (Letra + 2 dígitos + 10 dígitos)")
+        #    else:
+        #        QMessageBox.warning(self, "Erro", 
+        #                        "Número do contrato inválido!\n"
+        #                        "Formato deve ser: 2 dígitos + 10 dígitos\n"
+        #                        "Exemplo: 50-1234567890")
+        #    return
         
         if status == "Aprovada" and not self.verificar_todas_tarefas_concluidas(tipo_proposta):
             QMessageBox.warning(self, "Atenção", "Todas as tarefas devem ser concluídas para aprovar a proposta!")
