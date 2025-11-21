@@ -12,7 +12,7 @@ def verificar_validade_sistema():
     """Verifica se o sistema está dentro do período de validade"""
     try:
         # Data de expiração do sistema
-        data_expiracao = datetime(2025, 11, 25)  
+        data_expiracao = datetime(2025, 11, 30)  
         
         data_atual = datetime.now()
         

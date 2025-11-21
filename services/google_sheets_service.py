@@ -8,7 +8,7 @@ class GoogleSheetsService:
         self.carregar_dados_reais()
     
     def carregar_dados_reais(self):
-        """Carrega dados reais da planilha Google Sheets pública"""
+        """Carrega dados reais da planilha Google Sheets pública - COM DEBUG"""
         try:
             sheet_id = "1p0hnhlLH_xGKLNZzGkpC52V2o9mkCBYSTHIcxVix_GQ"
             url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
@@ -24,6 +24,11 @@ class GoogleSheetsService:
             print(f"Colunas encontradas: {df.columns.tolist()}")
             print(f"Total de linhas: {len(df)}")
             
+            # ⭐⭐ DEBUG: Mostrar algumas linhas para verificar a estrutura
+            print("📋 Primeiras 5 linhas da planilha:")
+            for i in range(min(5, len(df))):
+                print(f"Linha {i}: {df.iloc[i].tolist()}")
+            
             dados_processados = []
             
             for index, row in df.iterrows():
@@ -36,6 +41,10 @@ class GoogleSheetsService:
                     convenio = str(row.iloc[2]).strip()
                     produto = str(row.iloc[5]).strip()
                     status = str(row.iloc[7]).strip() if len(row) > 7 and pd.notna(row.iloc[7]) else "N/A"
+                    
+                    # ⭐⭐ DEBUG: Mostrar linha específica se for o produto problemático
+                    if produto == "CREDCESTA":
+                        print(f"🚨 LINHA CREDCESTA ENCONTRADA: Convênio='{convenio}', Produto='{produto}', Status='{status}'")
                     
                     dados_processados.append({
                         'Região': regiao,
@@ -77,10 +86,18 @@ class GoogleSheetsService:
                 produtos.add(row['Produto'])
         return sorted(list(produtos))
     
-    def get_status_por_produto(self, produto):
-        """Retorna status para um produto específico"""
+    def get_status_por_convenio(self, convenio):
+        """Retorna status para um convênio específico"""
+        print(f"🔍 Buscando status para convênio: '{convenio}'")
+        
         for row in self.dados:
-            if row.get('Produto') == produto:
+            if (row.get('Convênio') == convenio and 
+                row.get('Região') and 
+                row.get('Produto')):
+                
                 status = row.get('Status', 'Status não encontrado')
+                print(f"✅ Status encontrado para convênio '{convenio}': '{status}'")
                 return status if status != 'N/A' else 'Status não informado'
-        return "Produto não encontrado"
+        
+        print(f"⚠️  Convênio '{convenio}' não encontrado na planilha")
+        return "Convênio não encontrado"

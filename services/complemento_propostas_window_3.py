@@ -20,7 +20,7 @@ class PropostasWindowPart3:
         aba = QWidget()
         layout = QVBoxLayout()
         layout.setContentsMargins(5, 5, 5, 5)  
-        layout.setSpacing(3)  # ⭐⭐ REDUZIDO ESPAÇAMENTO GERAL (5 -> 3)
+        layout.setSpacing(3)
         
         # Área de entrada da proposta
         input_frame = self.criar_area_input(tipo_proposta)
@@ -43,8 +43,8 @@ class PropostasWindowPart3:
         frame = QFrame()
         frame.setObjectName("formFrame")
         layout = QVBoxLayout()
-        layout.setContentsMargins(8, 6, 8, 6)  # ⭐⭐ REDUZIDO verticalmente (8,8,8,8 -> 8,6,8,6)
-        layout.setSpacing(4)  # ⭐⭐ REDUZIDO (5 -> 4)
+        layout.setContentsMargins(8, 6, 8, 6)
+        layout.setSpacing(4)
         
         # Layout horizontal para número, botão limpar, analista E botões do sistema
         input_layout = QHBoxLayout()
@@ -67,10 +67,10 @@ class PropostasWindowPart3:
         numero_input.setObjectName("inputField")
         numero_input.setMaxLength(max_length)
         numero_input.setText(texto_inicial)
-        numero_input.setFixedWidth(200)  # ⭐⭐ AUMENTADO PARA 200
+        numero_input.setFixedWidth(200)
         numero_input.setStyleSheet("""
             QLineEdit {
-                font-size: 10px;  /* ⭐⭐ FONTE MENOR PARA PLACEHOLDER */
+                font-size: 10px;
             }
         """)
         
@@ -86,7 +86,7 @@ class PropostasWindowPart3:
         input_layout.addWidget(QLabel(label_text))
         input_layout.addWidget(numero_input)
         input_layout.addWidget(limpar_button)
-        input_layout.addStretch()  # ⭐⭐ PRIMEIRO STRETCH - empurra o analista para a direita
+        input_layout.addStretch()
         
         analista_label = QLabel(f"{self.user_data['nome_completo']} - {self.user_data['perfil']}")
         analista_label.setStyleSheet("""
@@ -106,7 +106,7 @@ class PropostasWindowPart3:
         input_layout.addWidget(analista_label)
         
         # ⭐⭐ BOTÕES DO SISTEMA (Cadastrar, Manutenção, Sair) - EM TODAS AS ABAS EXCETO HISTÓRICO
-        if tipo_proposta != "Histórico":  # ⭐⭐ AGORA EM TODAS AS ABAS EXCETO HISTÓRICO
+        if tipo_proposta != "Histórico":
             # Botão Cadastrar Usuário (apenas para Dev)
             cadastrar_button = QPushButton("Cadastrar")
             cadastrar_button.setObjectName("primaryButton")
@@ -132,7 +132,6 @@ class PropostasWindowPart3:
             if self.user_data['perfil'] == 'Analista':
                 cadastrar_button.setVisible(False)
                 manutencao_button.setVisible(False)
-            # Opção 1 (mais clara):
             if self.user_data['perfil'] in ['Supervisor', 'Gerente']:
                 cadastrar_button.setVisible(False)
             
@@ -192,7 +191,17 @@ class PropostasWindowPart3:
         status_layout.addWidget(QLabel("Status:"))
         status_label = QLabel("Não selecionado")
         status_label.setObjectName("infoLabel")
-        status_label.setStyleSheet("font-weight: bold; padding: 5px; background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 3px;")
+        # ⭐⭐ ESTILO INICIAL DO STATUS (cinza)
+        status_label.setStyleSheet("""
+            QLabel {
+                font-weight: bold; 
+                padding: 5px; 
+                background-color: #f8f9fa; 
+                border: 1px solid #dee2e6; 
+                border-radius: 3px;
+                color: #6c757d;
+            }
+        """)
         status_label.setMinimumHeight(30)
         status_label.setAlignment(Qt.AlignCenter)
         self.status_labels[tipo_proposta] = status_label
@@ -211,8 +220,9 @@ class PropostasWindowPart3:
         cpf_input.setPlaceholderText("000.000.000-00")
         cpf_input.setObjectName("inputField")
         cpf_input.setMaxLength(14)
-        cpf_input.setFixedWidth(150)  # ⭐⭐ LARGURA FIXA
+        cpf_input.setFixedWidth(150)
         cpf_input.textChanged.connect(self.formatar_cpf)
+        cpf_input.setEnabled(False)  # ⭐⭐ INICIALMENTE DESABILITADO
         self.cpf_inputs = getattr(self, 'cpf_inputs', {})
         self.cpf_inputs[tipo_proposta] = cpf_input
         cpf_layout.addWidget(cpf_input)
@@ -225,8 +235,9 @@ class PropostasWindowPart3:
         valor_input = QLineEdit()
         valor_input.setPlaceholderText("0,00")
         valor_input.setObjectName("inputField")
-        valor_input.setFixedWidth(100)  # ⭐⭐ LARGURA FIXA
+        valor_input.setFixedWidth(100)
         valor_input.textChanged.connect(self.formatar_valor)
+        valor_input.setEnabled(False)  # ⭐⭐ INICIALMENTE DESABILITADO
         self.valor_inputs = getattr(self, 'valor_inputs', {})
         self.valor_inputs[tipo_proposta] = valor_input
         valor_layout.addWidget(valor_input)
@@ -240,8 +251,9 @@ class PropostasWindowPart3:
             troco_input = QLineEdit()
             troco_input.setPlaceholderText("0,00")
             troco_input.setObjectName("inputField")
-            troco_input.setFixedWidth(100)  # ⭐⭐ LARGURA FIXA
+            troco_input.setFixedWidth(100)
             troco_input.textChanged.connect(self.formatar_valor)
+            troco_input.setEnabled(False)  # ⭐⭐ INICIALMENTE DESABILITADO
             self.troco_inputs = getattr(self, 'troco_inputs', {})
             self.troco_inputs[tipo_proposta] = troco_input
             troco_layout.addWidget(troco_input)
@@ -254,8 +266,9 @@ class PropostasWindowPart3:
         prazo_input = QLineEdit()
         prazo_input.setPlaceholderText("0")
         prazo_input.setObjectName("inputField")
-        prazo_input.setFixedWidth(80)  # ⭐⭐ LARGURA FIXA
+        prazo_input.setFixedWidth(80)
         prazo_input.setValidator(QIntValidator(0, 999, self))
+        prazo_input.setEnabled(False)  # ⭐⭐ INICIALMENTE DESABILITADO
         self.prazo_inputs = getattr(self, 'prazo_inputs', {})
         self.prazo_inputs[tipo_proposta] = prazo_input
         prazo_layout.addWidget(prazo_input)
@@ -268,10 +281,9 @@ class PropostasWindowPart3:
         observacoes_input = QLineEdit()
         observacoes_input.setPlaceholderText("Digite observações adicionais...")
         observacoes_input.setObjectName("inputField")
-
-        # ⭐⭐ OBSERVAÇÕES EXPANSÍVEL - preenche o espaço restante
         observacoes_input.setMinimumWidth(250)
         observacoes_input.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        observacoes_input.setEnabled(False)  # ⭐⭐ INICIALMENTE DESABILITADO
         self.observacoes_inputs = getattr(self, 'observacoes_inputs', {})
         self.observacoes_inputs[tipo_proposta] = observacoes_input
         observacoes_layout.addWidget(observacoes_input)
@@ -290,3 +302,77 @@ class PropostasWindowPart3:
         
         frame.setLayout(layout)
         return frame
+
+    def atualizar_status_ui(self, tipo_proposta, status):
+        """Atualiza a UI baseado no status do produto"""
+        status_label = self.status_labels.get(tipo_proposta)
+        if not status_label:
+            return
+            
+        # Definir cores baseado no status
+        if status == "Liberado":
+            cor_fundo = "#d4edda"  # Verde claro
+            cor_texto = "#155724"   # Verde escuro
+            cor_borda = "#c3e6cb"
+            campos_habilitados = True
+        else:
+            cor_fundo = "#f8d7da"  # Vermelho claro
+            cor_texto = "#721c24"   # Vermelho escuro
+            cor_borda = "#f5c6cb"
+            campos_habilitados = False
+            
+        # Aplicar estilo ao label de status
+        status_label.setStyleSheet(f"""
+            QLabel {{
+                font-weight: bold; 
+                padding: 5px; 
+                background-color: {cor_fundo}; 
+                border: 1px solid {cor_borda}; 
+                border-radius: 3px;
+                color: {cor_texto};
+            }}
+        """)
+        
+        # Atualizar texto do status
+        texto_status = status if status else "Não selecionado"
+        status_label.setText(texto_status)
+        
+        # Habilitar/desabilitar campos conforme o status
+        self.controlar_campos_formulario(tipo_proposta, campos_habilitados)
+    
+    def controlar_campos_formulario(self, tipo_proposta, habilitar):
+        """Controla a habilitação dos campos do formulário"""
+        # CPF
+        cpf_input = self.cpf_inputs.get(tipo_proposta)
+        if cpf_input:
+            cpf_input.setEnabled(habilitar)
+            if not habilitar:
+                cpf_input.clear()
+        
+        # Valor Liberado
+        valor_input = self.valor_inputs.get(tipo_proposta)
+        if valor_input:
+            valor_input.setEnabled(habilitar)
+            if not habilitar:
+                valor_input.clear()
+        
+        # Valor de Troco (apenas para Refin e Saque Direcionado)
+        troco_input = self.troco_inputs.get(tipo_proposta)
+        if troco_input:
+            troco_input.setEnabled(habilitar)
+            if not habilitar:
+                troco_input.clear()
+        
+        # Prazo
+        prazo_input = self.prazo_inputs.get(tipo_proposta)
+        if prazo_input:
+            prazo_input.setEnabled(habilitar)
+            if not habilitar:
+                prazo_input.clear()
+        
+        # Observações
+        observacoes_input = self.observacoes_inputs.get(tipo_proposta)
+        if observacoes_input:
+            observacoes_input.setEnabled(habilitar)
+            if not habilitar:
+                observacoes_input.clear()

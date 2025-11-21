@@ -48,64 +48,126 @@ class PropostasWindowPart7:
         # ⭐⭐ VALIDAR BOTÕES APÓS MUDANÇA
         self.validar_botoes_apos_mudanca_filtro(tipo_proposta)
 
+
     def on_convenio_selecionado(self, tipo_proposta):
-        """Quando um convênio é selecionado, carrega os produtos correspondentes"""
+        """Quando um convênio é selecionado, carrega produtos e já verifica o status"""
         convenio_combo = self.convenio_combos[tipo_proposta]
         produto_combo = self.produto_combos[tipo_proposta]
         status_label = self.status_labels[tipo_proposta]
         
-        # Limpar dependências
-        produto_combo.clear()
-        produto_combo.addItem("Selecione um produto", "")
-        status_label.setText("Não selecionado")
-        status_label.setStyleSheet("font-weight: bold; padding: 5px;")
-        
         convenio_selecionado = convenio_combo.currentData()
         
-        if convenio_selecionado:  # Se não for o item "Selecione"
+        if convenio_selecionado:
+            # ⭐⭐ VERIFICAR STATUS DO CONVÊNIO IMEDIATAMENTE
+            status = self.google_sheets_service.get_status_por_convenio(convenio_selecionado)
+            
+            # Atualizar status label
+            if status and status.strip().lower() == 'liberado':
+                status_label.setStyleSheet("color: #28a745; font-weight: bold; padding: 5px; background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 3px;")
+            else:
+                status_label.setStyleSheet("color: #dc3545; font-weight: bold; padding: 5px; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 3px;")
+                # ⭐⭐ DESABILITAR FLAGS E BOTÃO RECUSAR SE NÃO FOR LIBERADO
+                self.desabilitar_flags_e_botoes(tipo_proposta)
+            
+            status_label.setText(status)
+            
+            # Carregar produtos para este convênio
             produtos = self.google_sheets_service.get_produtos_por_convenio(convenio_selecionado)
+            
+            produto_combo.clear()
+            produto_combo.setEnabled(True)
+            produto_combo.addItem("Selecione um produto", "")
             
             for produto in produtos:
                 produto_combo.addItem(produto, produto)
             
-            produto_combo.setEnabled(True)
+            print(f"✅ Produtos carregados para convênio '{convenio_selecionado}': {len(produtos)} produtos")
         else:
+            produto_combo.clear()
             produto_combo.setEnabled(False)
+            produto_combo.addItem("Selecione um produto", "")
+            status_label.setText("Não selecionado")
+            status_label.setStyleSheet("color: #6c757d; font-weight: bold; padding: 5px; background-color: #e2e3e5; border: 1px solid #d6d8db; border-radius: 3px;")
+            # ⭐⭐ DESABILITAR FLAGS E BOTÃO RECUSAR
+            self.desabilitar_flags_e_botoes(tipo_proposta)
+
+    def on_produto_selecionado(self, tipo_proposta):
+        """Quando um produto é selecionado, mostra o status correspondente E controla campos adicionais"""
+        produto_combo = self.produto_combos[tipo_proposta]
+        convenio_combo = self.convenio_combos[tipo_proposta]
+        status_label = self.status_labels[tipo_proposta]
+        
+        produto_selecionado = produto_combo.currentData()
+        convenio_selecionado = convenio_combo.currentData()
+        
+        if produto_selecionado and convenio_selecionado:
+            # ⭐⭐ AGORA VERIFICAMOS O STATUS PELO CONVÊNIO, NÃO PELO PRODUTO
+            status = self.google_sheets_service.get_status_por_convenio(convenio_selecionado)
+            
+            # ⭐⭐ DEBUG: Mostrar informações detalhadas
+            print(f"🔍 Convênio: '{convenio_selecionado}' | Produto: '{produto_selecionado}' | Status retornado: '{status}'")
+            
+            # ⭐⭐ MODIFICAÇÃO: Verificar se o status é EXATAMENTE "Liberado" (case insensitive)
+            if status and status.strip().lower() == 'liberado':
+                # Status Liberado - Verde e campos habilitados
+                status_label.setStyleSheet("color: #28a745; font-weight: bold; padding: 5px; background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 3px;")
+                
+                # ⭐⭐ LIBERAR CAMPOS ADICIONAIS APÓS SELECIONAR PRODUTO COM STATUS LIBERADO
+                self.liberar_campos_adicionais(tipo_proposta)
+                # ⭐⭐ LIBERAR FLAGS E BOTÃO RECUSAR
+                self.liberar_flags_e_botoes(tipo_proposta)
+                print(f"✅ Status 'Liberado' - Todos os campos habilitados para {tipo_proposta}")
+                
+            else:
+                # Status NÃO Liberado - Vermelho e campos desabilitados
+                status_label.setStyleSheet("color: #dc3545; font-weight: bold; padding: 5px; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 3px;")
+                
+                # ⭐⭐ DESABILITAR CAMPOS ADICIONAIS SE STATUS NÃO FOR LIBERADO
+                self.desabilitar_campos_adicionais(tipo_proposta)
+                # ⭐⭐ DESABILITAR FLAGS E BOTÃO RECUSAR
+                self.desabilitar_flags_e_botoes(tipo_proposta)
+                print(f"❌ Status '{status}' - Todos os campos desabilitados para {tipo_proposta}")
+            
+            status_label.setText(status)
+        else:
+            # Nenhum produto ou convênio selecionado - Estado neutro
+            status_label.setText("Não selecionado")
+            status_label.setStyleSheet("color: #6c757d; font-weight: bold; padding: 5px; background-color: #e2e3e5; border: 1px solid #d6d8db; border-radius: 3px;")
+            
+            # ⭐⭐ DESABILITAR CAMPOS ADICIONAIS SE PRODUTO/CONVÊNIO NÃO SELECIONADO
+            self.desabilitar_campos_adicionais(tipo_proposta)
+            self.desabilitar_flags_e_botoes(tipo_proposta)
+            print(f"ℹ️  Produto ou convênio não selecionado - Todos os campos desabilitados para {tipo_proposta}")
         
         # Validar estado dos botões após mudança
         self.validar_botoes_apos_mudanca_filtro(tipo_proposta)
 
-    def on_produto_selecionado(self, tipo_proposta):
-        """Quando um produto é selecionado, mostra o status correspondente E libera campos adicionais"""
-        produto_combo = self.produto_combos[tipo_proposta]
-        status_label = self.status_labels[tipo_proposta]
+    def liberar_flags_e_botoes(self, tipo_proposta):
+        """Habilita os campos de FLAG e botão Recusar quando status é Liberado"""
+        # ⭐⭐ HABILITAR CHECKBOXES (FLAGS)
+        if tipo_proposta in self.checkboxes_dict:
+            for checkbox in self.checkboxes_dict[tipo_proposta].values():
+                checkbox.setEnabled(True)
         
-        produto_selecionado = produto_combo.currentData()
+        # ⭐⭐ HABILITAR BOTÃO RECUSAR
+        if tipo_proposta in self.recusar_buttons:
+            self.recusar_buttons[tipo_proposta].setEnabled(True)
         
-        if produto_selecionado:
-            status = self.google_sheets_service.get_status_por_produto(produto_selecionado)
-            
-            # Aplicar estilo baseado no status
-            if status and any(ativo in status.lower() for ativo in ['ativo', 'disponível', 'liberado']):
-                status_label.setStyleSheet("color: #28a745; font-weight: bold; padding: 5px; background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 3px;")
-            elif status and any(inativo in status.lower() for inativo in ['inativo', 'indisponível', 'bloqueado']):
-                status_label.setStyleSheet("color: #dc3545; font-weight: bold; padding: 5px; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 3px;")
-            else:
-                status_label.setStyleSheet("color: #6c757d; font-weight: bold; padding: 5px; background-color: #e2e3e5; border: 1px solid #d6d8db; border-radius: 3px;")
-            
-            status_label.setText(status)
-            
-            # ⭐⭐ LIBERAR CAMPOS ADICIONAIS APÓS SELECIONAR PRODUTO
-            self.liberar_campos_adicionais(tipo_proposta)
-        else:
-            status_label.setText("Não selecionado")
-            status_label.setStyleSheet("font-weight: bold; padding: 5px;")
-            
-            # ⭐⭐ DESABILITAR CAMPOS ADICIONAIS SE PRODUTO NÃO SELECIONADO
-            self.desabilitar_campos_adicionais(tipo_proposta)
+        print(f"✅ Flags e botão Recusar habilitados para {tipo_proposta}")
+
+    def desabilitar_flags_e_botoes(self, tipo_proposta):
+        """Desabilita os campos de FLAG e botão Recusar quando status NÃO é Liberado"""
+        # ⭐⭐ DESABILITAR CHECKBOXES (FLAGS)
+        if tipo_proposta in self.checkboxes_dict:
+            for checkbox in self.checkboxes_dict[tipo_proposta].values():
+                checkbox.setEnabled(False)
+                checkbox.setChecked(False)  # ⭐⭐ TAMBÉM DESMARCAR OS CHECKBOXES
         
-        # Validar estado dos botões após mudança
-        self.validar_botoes_apos_mudanca_filtro(tipo_proposta)
+        # ⭐⭐ DESABILITAR BOTÃO RECUSAR
+        if tipo_proposta in self.recusar_buttons:
+            self.recusar_buttons[tipo_proposta].setEnabled(False)
+        
+        print(f"❌ Flags e botão Recusar desabilitados para {tipo_proposta}")
 
     def liberar_campos_adicionais(self, tipo_proposta):
         """Libera campos adicionais (Troco, CPF, Valor, Prazo, Observações) após selecionar produto"""
@@ -167,6 +229,13 @@ class PropostasWindowPart7:
             todas_concluidas = self.verificar_todas_tarefas_concluidas(tipo_proposta)
             filtros_preenchidos = self.verificar_filtros_preenchidos(tipo_proposta)
             
+            # ⭐⭐ VERIFICAR SE O CONVÊNIO ESTÁ COM STATUS "LIBERADO"
+            status_liberado = False
+            convenio_combo = self.convenio_combos.get(tipo_proposta)
+            if convenio_combo and convenio_combo.currentData():
+                status = self.google_sheets_service.get_status_por_convenio(convenio_combo.currentData())
+                status_liberado = status and status.strip().lower() == 'liberado'
+            
             # ⭐⭐ VERIFICAR SE VALOR DE TROCO FOI PREENCHIDO (para habilitar flags)
             troco_preenchido = True
             if tipo_proposta in ["Refin", "Saque Direcionado", "Solicitação Interna"]:
@@ -174,18 +243,21 @@ class PropostasWindowPart7:
                     valor_troco = self.troco_inputs[tipo_proposta].text().strip()
                     troco_preenchido = bool(valor_troco and valor_troco != "0,00")
             
-            # ⭐⭐ HABILITAR/DESABILITAR FLAGS BASEADO NO TROCO
+            # ⭐⭐ HABILITAR/DESABILITAR FLAGS BASEADO NO TROCO E STATUS
             if hasattr(self, 'checkboxes_dict') and tipo_proposta in self.checkboxes_dict:
                 for checkbox in self.checkboxes_dict[tipo_proposta].values():
-                    checkbox.setEnabled(troco_preenchido)
+                    checkbox.setEnabled(troco_preenchido and status_liberado)
             
-            self.aprovar_buttons[tipo_proposta].setEnabled(todas_concluidas and filtros_preenchidos)
-            self.recusar_buttons[tipo_proposta].setEnabled(filtros_preenchidos)
+            # ⭐⭐ HABILITAR BOTÕES APENAS SE STATUS FOR LIBERADO
+            self.aprovar_buttons[tipo_proposta].setEnabled(todas_concluidas and filtros_preenchidos and status_liberado)
+            self.recusar_buttons[tipo_proposta].setEnabled(filtros_preenchidos and status_liberado)
             
             print(f"🔍 Validação após filtro - {tipo_proposta}:")
+            print(f"   - Status Liberado: {status_liberado}")
             print(f"   - Troco preenchido: {troco_preenchido}")
-            print(f"   - Flags habilitados: {troco_preenchido}")
-            print(f"   - Recusar habilitado: {filtros_preenchidos}")
+            print(f"   - Flags habilitados: {troco_preenchido and status_liberado}")
+            print(f"   - Recusar habilitado: {filtros_preenchidos and status_liberado}")
+            print(f"   - Aprovar habilitado: {todas_concluidas and filtros_preenchidos and status_liberado}")
 
     def validar_apos_troco(self, text, tipo_proposta):
         """Valida os flags após digitar no campo de troco"""

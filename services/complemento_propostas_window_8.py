@@ -15,6 +15,7 @@ class PropostasWindowPart8:
             base_path = os.path.abspath(".")
         return os.path.join(base_path, relative_path)
     
+
     def limpar_proposta(self, tipo_proposta):
         """Limpa completamente todos os campos para uma nova proposta"""
         # Parar timer de duração
@@ -37,24 +38,34 @@ class PropostasWindowPart8:
         self.produto_combos[tipo_proposta].setEnabled(False)
         
         self.status_labels[tipo_proposta].setText("Não selecionado")
-        self.status_labels[tipo_proposta].setStyleSheet("font-weight: bold; padding: 5px;")
+        self.status_labels[tipo_proposta].setStyleSheet("color: #6c757d; font-weight: bold; padding: 5px; background-color: #e2e3e5; border: 1px solid #d6d8db; border-radius: 3px;")
         
-        # 3. ⭐⭐ LIMPAR NOVOS CAMPOS (incluindo troco)
+        # 3. ⭐⭐ DESABILITAR E LIMPAR NOVOS CAMPOS (incluindo troco)
         if hasattr(self, 'cpf_inputs') and tipo_proposta in self.cpf_inputs:
             self.cpf_inputs[tipo_proposta].clear()
+            self.cpf_inputs[tipo_proposta].setEnabled(False)
+            self.cpf_inputs[tipo_proposta].setPlaceholderText("Selecione o produto primeiro")
         
         if hasattr(self, 'valor_inputs') and tipo_proposta in self.valor_inputs:
             self.valor_inputs[tipo_proposta].clear()
+            self.valor_inputs[tipo_proposta].setEnabled(False)
+            self.valor_inputs[tipo_proposta].setPlaceholderText("Selecione o produto primeiro")
         
         if hasattr(self, 'prazo_inputs') and tipo_proposta in self.prazo_inputs:
             self.prazo_inputs[tipo_proposta].clear()
+            self.prazo_inputs[tipo_proposta].setEnabled(False)
+            self.prazo_inputs[tipo_proposta].setPlaceholderText("Selecione o produto primeiro")
         
         if hasattr(self, 'observacoes_inputs') and tipo_proposta in self.observacoes_inputs:
             self.observacoes_inputs[tipo_proposta].clear()
+            self.observacoes_inputs[tipo_proposta].setEnabled(False)
+            self.observacoes_inputs[tipo_proposta].setPlaceholderText("Selecione o produto primeiro")
         
-        # ⭐⭐ LIMPAR CAMPO DE TROCO (se existir)
+        # ⭐⭐ DESABILITAR E LIMPAR CAMPO DE TROCO (se existir)
         if hasattr(self, 'troco_inputs') and tipo_proposta in self.troco_inputs:
             self.troco_inputs[tipo_proposta].clear()
+            self.troco_inputs[tipo_proposta].setEnabled(False)
+            self.troco_inputs[tipo_proposta].setPlaceholderText("Selecione o produto primeiro")
         
         # 4. Resetar dados internos
         self.data_criacao = None
@@ -67,19 +78,14 @@ class PropostasWindowPart8:
         # 5. Atualizar interface
         self.data_info_labels[tipo_proposta].setText("Data/Hora Criação: --/--/-- --:--:--")
         
-        # Checkboxes - desmarcar e desabilitar
-        for checkbox in self.checkboxes_dict[tipo_proposta].values():
-            checkbox.setEnabled(False)
-            checkbox.setChecked(False)
-        
-        # Botões - desabilitar
-        self.aprovar_buttons[tipo_proposta].setEnabled(False)
-        self.recusar_buttons[tipo_proposta].setEnabled(False)
+        # ⭐⭐ DESABILITAR FLAGS E BOTÕES que estão no complemento_propostas_window_7.py quando convênio não for Liberado
+        self.desabilitar_flags_e_botoes(tipo_proposta)
         
         # 6. Destravar abas
         self.destravar_todas_abas()
-        
+            
         print("✅ Contrato completamente limpo - pronto para nova análise")
+
 
     def mostrar_popup_reanalise(self, texto, proposta_existente, tipo_proposta):
         """Mostra popup quando o contrato já existe"""
