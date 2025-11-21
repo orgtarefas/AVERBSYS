@@ -5,6 +5,7 @@ from PyQt5.QtCore import pyqtSignal, Qt, QSettings
 from PyQt5.QtGui import QPixmap, QIcon
 from utils.styles import get_login_styles
 from services.proposta_service import PropostaService
+from main import VERSAO_SISTEMA
 import sys
 import os
 
@@ -25,14 +26,7 @@ class LoginWindow(QWidget):
         self.proposta_service = PropostaService() 
         
         # ⭐⭐ VERSÃO VEM DO MAIN.PY
-        try:
-            from main import VERSAO_SISTEMA
-            self.versao_local = VERSAO_SISTEMA
-        except ImportError:
-            # Fallback caso não consiga importar
-            self.versao_local = "0.3"
-            print("⚠️  Não foi possível importar a versão do main.py, usando fallback")
-        
+        self.versao_local = VERSAO_SISTEMA
         self.init_ui()
         self.load_saved_credentials()
         self.verificar_versao_sistema()
@@ -348,7 +342,7 @@ class LoginWindow(QWidget):
         )        
 
     def mostrar_informacoes(self):
-        """Mostra informações do sistema"""
+        """Mostra informações do sistema - COM DADOS DO FIREBASE"""
         dialog = QDialog(self)
         dialog.setWindowTitle(" ")
         
@@ -416,24 +410,124 @@ class LoginWindow(QWidget):
         dev_titulo.setObjectName("subtitulo")
         layout.addWidget(dev_titulo)
         
-        desenvolvedores = [
-            "• Daniela Santana - Front End",
-            "• Thiago Carvalho - Dev.", 
-            "• Evandro Messias - Back End",
-            "• Mateus Ferreira - Q.A.",
-            "• Ariadna Oliveira - Creator"
-        ]
+        # ⭐⭐ BUSCAR DADOS DOS DESENVOLVEDORES DO FIREBASE
+        desenvolvedores = self.buscar_desenvolvedores_firebase()
         
-        for dev in desenvolvedores:
-            label = QLabel(dev)
-            label.setObjectName("info")
-            layout.addWidget(label)
+        if desenvolvedores:
+            for dev in desenvolvedores:
+                label = QLabel(dev)
+                label.setObjectName("info")
+                layout.addWidget(label)
+        else:
+            # Fallback caso não consiga buscar do Firebase
+            desenvolvedores_fallback = [
+                "• Daniela Santana - Front End",
+                "• Thiago Carvalho - Dev.", 
+                "• Evandro Messias - Back End",
+                "• Mateus Ferreira - Q.A.",
+                "• Ariadna Oliveira - Creator"
+            ]
+            for dev in desenvolvedores_fallback:
+                label = QLabel(dev)
+                label.setObjectName("info")
+                layout.addWidget(label)
         
         layout.addSpacing(10)
                 
         dialog.setLayout(layout)
         dialog.exec_()
-    
+
+    def mostrar_informacoes(self):
+        """Mostra informações do sistema - APENAS DADOS DO FIREBASE"""
+        dialog = QDialog(self)
+        dialog.setWindowTitle(" ")
+        
+        # REMOVER o botão "?" da janela
+        dialog.setWindowFlags(dialog.windowFlags() & ~Qt.WindowContextHelpButtonHint)
+        
+        try:
+            dialog.setWindowIcon(QIcon(resource_path('assets/logo.png')))
+        except:
+            pass
+        
+        dialog.setFixedSize(350, 280)
+        dialog.setStyleSheet("""
+            QDialog {
+                background-color: white;
+                font-family: Arial, sans-serif;
+            }
+            QLabel {
+                color: #333333;
+            }
+            QLabel#titulo {
+                font-size: 16px;
+                font-weight: bold;
+                color: #2c3e50;
+            }
+            QLabel#subtitulo {
+                font-size: 12px;
+                font-weight: bold;
+                color: #34495e;
+                margin-top: 10px;
+            }
+            QLabel#info {
+                font-size: 11px;
+                color: #555555;
+            }
+            QPushButton {
+                background-color: #3498db;
+                color: white;
+                border: none;
+                padding: 6px 12px;
+                border-radius: 3px;
+            }
+        """)
+        
+        layout = QVBoxLayout()
+        layout.setSpacing(5)
+        layout.setContentsMargins(20, 20, 20, 15)
+        
+        # Título e versão
+        titulo = QLabel("AVERBSYS")
+        titulo.setObjectName("titulo")
+        titulo.setAlignment(Qt.AlignCenter)
+        layout.addWidget(titulo)
+        
+        versao = QLabel(f"Versão {self.versao_local}")
+        versao.setObjectName("info")
+        versao.setAlignment(Qt.AlignCenter)
+        layout.addWidget(versao)
+        
+        layout.addSpacing(12)
+        
+        # ⭐⭐ BUSCAR DADOS DOS DESENVOLVEDORES DO FIREBASE
+        desenvolvedores = []
+        try:
+            # Criar UserService e chamar o método que está no user_service.py
+            from services.user_service import UserService
+            user_service = UserService()
+            desenvolvedores = user_service.buscar_desenvolvedores_firebase()
+        except Exception as e:
+            print(f"❌ Erro ao buscar desenvolvedores: {e}")
+        
+        # ⭐⭐ SÓ MOSTRA A SEÇÃO DE DESENVOLVEDORES SE HOUVER DADOS DO FIREBASE
+        if desenvolvedores:
+            dev_titulo = QLabel("Equipe de Desenvolvimento:")
+            dev_titulo.setObjectName("subtitulo")
+            layout.addWidget(dev_titulo)
+            
+            for dev in desenvolvedores:
+                label = QLabel(dev)
+                label.setObjectName("info")
+                layout.addWidget(label)
+        else:
+            print("⚠️  Nenhum desenvolvedor encontrado no Firebase")
+        
+        layout.addSpacing(10)
+                
+        dialog.setLayout(layout)
+        dialog.exec_()
+        
     def set_loading(self, loading):
         self.login_button.setEnabled(not loading)
         self.progress_bar.setVisible(loading)

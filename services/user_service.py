@@ -90,6 +90,53 @@ class UserService(QObject):
         except Exception as e:
             print(f"Erro ao listar usuários: {e}")
             return []
+        
+
+    def buscar_desenvolvedores_firebase(self):
+        """Busca os dados dos desenvolvedores no Firebase - CORRIGIDO"""
+        try:
+            # Referência para a subcoleção de membros
+            membros_ref = self.db.collection('info').document('vQXIyU3YQhJcqff9TCoj').collection('Membros_da_Equipe')
+            
+            # Buscar todos os documentos da subcoleção
+            docs = membros_ref.stream()
+            
+            desenvolvedores = []
+            
+            for doc in docs:
+                dados = doc.to_dict()
+                print(f"🔍 Documento encontrado: {doc.id}")
+                print(f"📋 Dados do documento: {dados}")
+                
+                # ⭐⭐ BUSCAR O MEMBRO PRINCIPAL DE CADA DOCUMENTO
+                # Cada documento tem Membro_1 ou Membro_2, etc.
+                for chave, valor in dados.items():
+                    if chave.startswith('Membro_') and not chave.endswith('_Cargo'):
+                        # Encontrou um campo de nome (ex: Membro_1, Membro_2)
+                        numero_membro = chave.split('_')[1]  # Pega o número (1, 2, etc.)
+                        nome = valor
+                        cargo_chave = f"Membro_{numero_membro}_Cargo"
+                        cargo = dados.get(cargo_chave, '')
+                        
+                        print(f"   👤 Membro {numero_membro}: {nome} - {cargo}")
+                        
+                        if nome and cargo:
+                            desenvolvedores.append(f"• {nome} - {cargo}")
+                        elif nome:
+                            desenvolvedores.append(f"• {nome}")
+            
+            # Ordenar os desenvolvedores para manter consistência
+            desenvolvedores.sort()
+            
+            print(f"✅ Desenvolvedores carregados do Firebase: {len(desenvolvedores)} membros")
+            for dev in desenvolvedores:
+                print(f"   {dev}")
+            
+            return desenvolvedores if desenvolvedores else []
+            
+        except Exception as e:
+            print(f"❌ Erro ao buscar desenvolvedores do Firebase: {e}")
+            return []
 
     # NOVOS MÉTODOS PARA MANUTENÇÃO DE USUÁRIOS
     def listar_todos_usuarios(self):
