@@ -93,7 +93,7 @@ class UserService(QObject):
         
 
     def buscar_desenvolvedores_firebase(self):
-        """Busca os dados dos desenvolvedores no Firebase - CORRIGIDO"""
+        """Busca os dados dos desenvolvedores no Firebase - MOSTRA TODOS OS CAMPOS SEM PREVISÕES"""
         try:
             # Referência para a subcoleção de membros
             membros_ref = self.db.collection('info').document('vQXIyU3YQhJcqff9TCoj').collection('Membros_da_Equipe')
@@ -105,32 +105,57 @@ class UserService(QObject):
             
             for doc in docs:
                 dados = doc.to_dict()
-                print(f"🔍 Documento encontrado: {doc.id}")
-                print(f"📋 Dados do documento: {dados}")
+                print(f"🔍 Processando documento: {doc.id}")
+                print(f"📋 Todos os campos encontrados: {list(dados.keys())}")
                 
-                # ⭐⭐ BUSCAR O MEMBRO PRINCIPAL DE CADA DOCUMENTO
-                # Cada documento tem Membro_1 ou Membro_2, etc.
+                # ⭐⭐ IDENTIFICAR OS MEMBROS PRINCIPAIS (Membro_1, Membro_2, etc.)
+                membros_principais = {}
+                
                 for chave, valor in dados.items():
-                    if chave.startswith('Membro_') and not chave.endswith('_Cargo'):
-                        # Encontrou um campo de nome (ex: Membro_1, Membro_2)
-                        numero_membro = chave.split('_')[1]  # Pega o número (1, 2, etc.)
-                        nome = valor
-                        cargo_chave = f"Membro_{numero_membro}_Cargo"
-                        cargo = dados.get(cargo_chave, '')
+                    if chave.startswith('Membro_'):
+                        # Verificar se é um campo de nome principal (não tem sufixo com underscore)
+                        partes = chave.split('_')
+                        if len(partes) == 2 and partes[1].isdigit():
+                            # É um membro principal (Membro_1, Membro_2, etc.)
+                            numero = partes[1]
+                            membros_principais[numero] = valor
+                
+                # ⭐⭐ SE NÃO ENCONTRAR MEMBROS PRINCIPAIS, MOSTRAR TODOS OS CAMPOS DO DOCUMENTO
+                if not membros_principais:
+                    print("   ℹ️  Nenhum membro principal encontrado, mostrando todos os campos:")
+                    for chave, valor in dados.items():
+                        nome_campo = chave.replace('_', ' ').title()
+                        desenvolvedores.append(f"  {nome_campo}: {valor}")
+                    desenvolvedores.append("")  # Linha em branco entre documentos
+                    continue
+                
+                # ⭐⭐ PROCESSAR CADA MEMBRO PRINCIPAL
+                for numero, nome in membros_principais.items():
+                    print(f"   👤 Processando Membro_{numero}: {nome}")
+                    
+                    # Linha com o nome principal
+                    desenvolvedores.append(f"• {nome}")
+                    
+                    # ⭐⭐ BUSCAR TODOS OS CAMPOS RELACIONADOS A ESTE MEMBRO
+                    for chave, valor in dados.items():
+                        if chave == f'Membro_{numero}':
+                            continue  # Já usamos o nome principal
                         
-                        print(f"   👤 Membro {numero_membro}: {nome} - {cargo}")
+                        nome_campo = chave.replace('_', ' ').title()
                         
-                        if nome and cargo:
-                            desenvolvedores.append(f"• {nome} - {cargo}")
-                        elif nome:
-                            desenvolvedores.append(f"• {nome}")
+                        # Se o campo começa com o número do membro, é específico dele
+                        if chave.startswith(f'Membro_{numero}_'):
+                            nome_campo_limpo = nome_campo.replace(f'Membro {numero} ', '')
+                            desenvolvedores.append(f"  {nome_campo_limpo}: {valor}")
+                        # Se não começa com "Membro_", é um campo geral
+                        elif not chave.startswith('Membro_'):
+                            desenvolvedores.append(f"  {nome_campo}: {valor}")
+                        # Se começa com "Membro_" mas é de outro membro, ignoramos
+                        # (será processado quando chegar naquele membro)
+                    
+                    desenvolvedores.append("")  # Linha em branco entre membros
             
-            # Ordenar os desenvolvedores para manter consistência
-            desenvolvedores.sort()
-            
-            print(f"✅ Desenvolvedores carregados do Firebase: {len(desenvolvedores)} membros")
-            for dev in desenvolvedores:
-                print(f"   {dev}")
+            print(f"✅ Total de linhas formatadas: {len(desenvolvedores)}")
             
             return desenvolvedores if desenvolvedores else []
             
