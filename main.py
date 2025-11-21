@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QApplication, QMessageBox
 from PyQt5.QtCore import Qt
 
 
-VERSAO_SISTEMA = "0.4"  # versão
+VERSAO_SISTEMA = "0.5"  # versão
 
 def verificar_validade_sistema():
     """Verifica se o sistema está dentro do período de validade"""
