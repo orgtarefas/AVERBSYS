@@ -5,8 +5,7 @@ from views.home_window import HomeWindow
 from views.register_window import RegisterWindow
 from views.propostas_window import PropostasWindow
 from views.manutencao_usuarios_window import ManutencaoUsuariosWindow
-from models.database import DatabaseManager
-from workers.api_worker import APIWorker
+from services.user_service import UserService  # ⭐⭐ CORREÇÃO: Usar UserService direto
 
 class AuthController(QObject):
     login_success = pyqtSignal(dict)
@@ -16,14 +15,12 @@ class AuthController(QObject):
     
     def __init__(self):
         super().__init__()
-        self.db_manager = DatabaseManager()
-        self.api_worker = APIWorker()
+        # ⭐⭐ CORREÇÃO: Remover DatabaseManager e APIWorker
+        self.user_service = UserService()  # ⭐⭐ Usar UserService direto
         
-        # Conectar sinais do worker
-        self.api_worker.data_loaded.connect(self.on_data_loaded)
-        self.api_worker.error_occurred.connect(self.on_api_error)
-        self.api_worker.login_verified.connect(self.on_login_verified)
-        self.api_worker.user_registered.connect(self.on_user_registered)
+        # Conectar sinais do user_service
+        self.user_service.user_authenticated.connect(self.on_login_verified)
+        self.user_service.user_registered.connect(self.on_user_registered)
         
         # Inicializar views
         self.login_window = LoginWindow()
@@ -44,8 +41,7 @@ class AuthController(QObject):
         self.register_success.connect(self.on_register_success)
         self.register_failed.connect(self.on_register_failed)
         
-        # Carregar dados iniciais
-        self.api_worker.load_data()
+        print("✅ AuthController inicializado (simplificado)")
     
     def show_login(self):
         """Mostra a tela de login e esconde outras"""
@@ -76,28 +72,20 @@ class AuthController(QObject):
     
     def handle_login(self, username, password):
         """Processa tentativa de login"""
-        self.api_worker.verify_login(username, password)
+        print(f"🔐 Tentativa de login: {username}")
+        self.login_window.set_loading(True)
+        self.user_service.verificar_login(username, password)
     
     def handle_register(self, user_data):
         """Processa tentativa de registro"""
-        self.api_worker.register_user(user_data)
-    
-    def on_data_loaded(self, data):
-        """Callback quando dados são carregados"""
-        self.db_manager.set_data(data)
-        print("Dados carregados com sucesso!")
-    
-    def on_api_error(self, error_message):
-        """Callback de erro da API"""
-        print(f"API Error: {error_message}")
-        # Mostrar erro na janela apropriada
-        if self.login_window.isVisible():
-            self.login_window.show_error(f"Erro: {error_message}")
-        elif self.register_window.isVisible():
-            self.register_window.show_error(f"Erro: {error_message}")
+        print(f"👤 Tentativa de registro: {user_data['login']}")
+        self.register_window.set_loading(True)
+        self.user_service.cadastrar_usuario(user_data)
     
     def on_login_verified(self, user_data, error_message):
         """Callback de verificação de login"""
+        self.login_window.set_loading(False)
+        
         if user_data and not error_message:
             self.login_success.emit(user_data)
         elif error_message:
@@ -107,6 +95,8 @@ class AuthController(QObject):
     
     def on_user_registered(self, success, message):
         """Callback de registro de usuário"""
+        self.register_window.set_loading(False)
+        
         if success:
             self.register_success.emit()
         else:
@@ -199,6 +189,8 @@ class AuthController(QObject):
     
     def logout(self):
         """Realiza logout do sistema"""
+        print("🚪 Realizando logout...")
+        
         # Fechar todas as janelas
         self._hide_all_windows()
         
@@ -209,8 +201,10 @@ class AuthController(QObject):
         # Mostrar tela de login
         self.show_login()
         
-        # ⭐⭐ NOVO: Recarregar as credenciais salvas ⭐⭐
+        # Recarregar as credenciais salvas
         self.login_window.load_saved_credentials()
+        
+        print("✅ Logout realizado com sucesso")
     
     def _hide_all_windows(self):
         """Esconde todas as janelas"""
@@ -223,4 +217,3 @@ class AuthController(QObject):
         
         if self.manutencao_window:
             self.manutencao_window.hide()
-
