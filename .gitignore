@@ -2,6 +2,7 @@
 # FIREBASE SECRETS & SENSITIVE DATA
 # ============================================
 serviceAccountKey.json
+serviceAccountKey1.json
 firebase-config.json
 firebase-keys.json
 *.json
