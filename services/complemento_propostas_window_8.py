@@ -197,56 +197,40 @@ class PropostasWindowPart8:
 
     def configurar_proposta_em_andamento(self, numero_contrato, tipo_proposta):
         """Configura o estado quando uma proposta está em andamento"""
-        print(f"🔍 Verificando contrato: {numero_contrato}")
+        print(f"🔍 Verificando contrato: {numero_contrato} na aba: {tipo_proposta}")
         
         # EXCEÇÃO: Para Solicitação Interna, não verifica se já existe
         if tipo_proposta != "Solicitação Interna":
             try:
-                # Verificar se o contrato já existe no sistema (apenas para outras abas)
-                proposta_existente = self.proposta_service.verificar_proposta_existente(numero_contrato)
+                # ⭐⭐ VERIFICAR APENAS NA COLEÇÃO ESPECÍFICA DA ABA ATUAL
+                proposta_existente = self.proposta_service.verificar_proposta_existente(numero_contrato, tipo_proposta)
                 
                 if proposta_existente:
                     print("⚠️ Contrato já existe - mostrando popup reanálise")
                     # Contrato já existe - mostrar popup de reanálise
                     self.mostrar_popup_reanalise(numero_contrato, proposta_existente, tipo_proposta)
-                    return  # ⭐⭐ IMPORTANTE: Sai da função aqui se mostrar popup
+                    return
                 else:
                     print("✅ Contrato novo - prosseguindo normalmente")
             except Exception as e:
                 print(f"❌ Erro ao verificar contrato existente: {e}")
-                # Em caso de erro, prossegue como contrato novo
                 QMessageBox.warning(self, "Aviso", "Erro ao verificar contrato existente. Prosseguindo como novo contrato.")
         else:
             print("✅ Solicitação Interna - não verifica existência")
-               
+            
         print("✅ Configurando proposta em andamento")
         
         # TRAVAR o campo de entrada
         self.numero_inputs[tipo_proposta].setEnabled(False)
         
-        # ⭐⭐ O FILTRO DE REGIÃO JÁ FOI HABILITADO NA validação_formato_contrato ⭐⭐
-        # Apenas verificar se está habilitado
-        regiao_habilitada = self.regiao_combos[tipo_proposta].isEnabled()
-        print(f"🔍 Estado do filtro região: {'✅ Habilitado' if regiao_habilitada else '❌ Desabilitado'}")
-        
-        # Se por algum motivo não estiver habilitado, habilitar agora
-        if not regiao_habilitada:
-            self.regiao_combos[tipo_proposta].setEnabled(True)
-            print("✅ Filtro de região habilitado (correção)")
+        # HABILITAR os filtros (já que é um contrato válido)
+        self.regiao_combos[tipo_proposta].setEnabled(True)
+        print("✅ Filtro de região habilitado")
         
         # Registrar dados internos
         self.data_criacao = datetime.now()
         self.tipo_proposta_atual = tipo_proposta
         self.proposta_em_andamento = True
-        
-        # EXCEÇÃO: Para Solicitação Interna, nunca é reanálise
-        if tipo_proposta == "Solicitação Interna":
-            self.eh_reanalise = False
-            self.proposta_original = None
-        else:
-            # Para outras abas, também não é reanálise (já verificamos que é novo)
-            self.eh_reanalise = False
-            self.proposta_original = None
         
         # Iniciar timer para atualizar duração
         self.timer_duracao.start(1000)
@@ -259,7 +243,7 @@ class PropostasWindowPart8:
         for checkbox in self.checkboxes_dict[tipo_proposta].values():
             checkbox.setEnabled(True)
         
-        # VALIDAR ESTADO INICIAL DOS BOTÕES (provavelmente desabilitados)
+        # VALIDAR ESTADO INICIAL DOS BOTÕES
         self.validar_botoes_apos_mudanca_filtro(tipo_proposta)
         
         # TRAVANDO as outras abas

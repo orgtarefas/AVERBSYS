@@ -206,65 +206,7 @@ class PropostaService(QObject):
             print(f"Erro ao listar propostas por analista: {e}")
             return []
         
-    def listar_todas_propostas(self, force_refresh=False):
-        """Lista todas as propostas do sistema COM CACHE E LIMITE"""
-        try:
-            # ⭐⭐ VERIFICAR CACHE PRIMEIRO
-            current_time = datetime.now().timestamp()
-            if (not force_refresh and self._cache_timestamp and 
-                (current_time - self._cache_timestamp) < self._cache_timeout):
-                print("📊 Retornando dados do CACHE")
-                return self._cache_propostas.get('todas_propostas', [])
-            
-            print("📋 Buscando propostas no Firebase (COM LIMITE)...")
-            propostas = []
-            
-            colecoes_reais = {
-                'tarefas1_saquefacil': 'Saque Fácil',
-                'tarefas2_refin': 'Refin', 
-                'tarefas3_saquedirecionado': 'Saque Direcionado',
-                'tarefas4_solicitacao_interna': 'Solicitação Interna'
-            }
-            
-            for colecao_nome, tipo_proposta in colecoes_reais.items():
-                try:
-                    # ⭐⭐ LIMITE ADICIONADO AQUI - máximo 1000 documentos por coleção
-                    docs = self.db.collection(colecao_nome).limit(1000).get()
-                    
-                    for doc in docs:
-                        proposta_data = doc.to_dict()
-                        proposta_data = self._converter_datas_proposta(proposta_data)
-                        
-                        if 'dados_filtro' not in proposta_data:
-                            proposta_data['dados_filtro'] = {}
-                        
-                        proposta_formatada = {
-                            'id': doc.id,
-                            'numero_proposta': proposta_data.get('numero_proposta', doc.id),
-                            'analista': proposta_data.get('analista', ''),
-                            'tipo_proposta': proposta_data.get('tipo_proposta', tipo_proposta),
-                            'status': proposta_data.get('status', ''),
-                            'data_criacao': proposta_data.get('data_criacao'),
-                            'data_conclusao': proposta_data.get('data_conclusao'),
-                            'duracao_total': proposta_data.get('duracao_total', ''),
-                            'dados_filtro': proposta_data.get('dados_filtro', {})
-                        }
-                        propostas.append(proposta_formatada)
-                        
-                except Exception as e:
-                    print(f"❌ Erro ao buscar na coleção {colecao_nome}: {e}")
-                    continue
-            
-            # ⭐⭐ ATUALIZAR CACHE
-            self._cache_propostas['todas_propostas'] = propostas
-            self._cache_timestamp = current_time
-            
-            print(f"✅ {len(propostas)} propostas encontradas (CACHE ATUALIZADO)")
-            return propostas
-            
-        except Exception as e:
-            print(f"❌ Erro ao listar propostas: {e}")
-            return []
+
         
     def listar_propostas_com_filtros(self, data_inicio=None, data_fim=None, analista=None, tipo_proposta=None):
         """Lista propostas com filtros aplicados - versão sem índices compostos"""
@@ -392,6 +334,87 @@ class PropostaService(QObject):
         except Exception as e:
             print(f"❌ Erro ao filtrar propostas: {e}")
             return []
+
+    def listar_todas_propostas(self):
+        """Lista TODAS as propostas de TODAS as coleções - COM CACHE"""
+        try:
+            # ⭐⭐ VERIFICAR CACHE PRIMEIRO
+            current_time = datetime.now()
+            if (self._cache_timestamp and 
+                (current_time - self._cache_timestamp).total_seconds() < self._cache_timeout and
+                self._cache_propostas):
+                print("📋 Retornando propostas do cache")
+                return list(self._cache_propostas.values())
+            
+            print("🔍 Buscando TODAS as propostas no Firebase...")
+            propostas = []
+            
+            # ⭐⭐ COLEÇÕES FIXAS - MESMO MAPEAMENTO USADO NO SISTEMA
+            colecoes = [
+                'tarefas1_saquefacil',
+                'tarefas2_refin', 
+                'tarefas3_saquedirecionado',
+                'tarefas4_solicitacao_interna'
+            ]
+            
+            for colecao_nome in colecoes:
+                try:
+                    print(f"  📂 Buscando na coleção: {colecao_nome}")
+                    docs = self.db.collection(colecao_nome).limit(1000).get()
+                    
+                    for doc in docs:
+                        proposta_data = doc.to_dict()
+                        proposta_data['id'] = doc.id
+                        proposta_data['colecao_origem'] = colecao_nome
+                        
+                        # Converter datas
+                        proposta_data = self._converter_datas_proposta(proposta_data)
+                        
+                        # GARANTIR QUE DADOS_FILTRO EXISTE
+                        if 'dados_filtro' not in proposta_data:
+                            proposta_data['dados_filtro'] = {
+                                'regiao': '',
+                                'convenio': '',
+                                'produto': '',
+                                'status': '',
+                                'motivo_recusa_id': '',
+                                'motivo_recusa_descricao': '',
+                                'tipo_recusa': ''
+                            }
+                        else:
+                            # Garantir que todos os campos existem
+                            dados_filtro = proposta_data['dados_filtro']
+                            campos_necessarios = [
+                                'regiao', 'convenio', 'produto', 'status',
+                                'motivo_recusa_id', 'motivo_recusa_descricao', 'tipo_recusa'
+                            ]
+                            for campo in campos_necessarios:
+                                if campo not in dados_filtro:
+                                    dados_filtro[campo] = ''
+                        
+                        propostas.append(proposta_data)
+                        
+                except Exception as e:
+                    print(f"❌ Erro ao buscar na coleção {colecao_nome}: {e}")
+                    continue
+            
+            # Ordenar por data (mais recente primeiro)
+            propostas.sort(key=lambda x: self._converter_para_datetime(x.get('data_criacao')), reverse=True)
+            
+            # ⭐⭐ ATUALIZAR CACHE
+            self._cache_propostas = {prop['id']: prop for prop in propostas}
+            self._cache_timestamp = current_time
+            
+            print(f"✅ {len(propostas)} propostas encontradas (cache atualizado)")
+            return propostas
+            
+        except Exception as e:
+            print(f"❌ Erro ao listar todas as propostas: {e}")
+            # Tentar retornar cache mesmo que expirado
+            if self._cache_propostas:
+                print("⚠️  Retornando cache expirado como fallback")
+                return list(self._cache_propostas.values())
+            return []      
         
     def _converter_datas_proposta(self, proposta_data):
         """Converte as datas do Firestore para objetos Python datetime"""
@@ -485,45 +508,59 @@ class PropostaService(QObject):
             return dt.replace(tzinfo=timezone.utc)
         return dt
     
-
-    
-    
-    def verificar_proposta_existente(self, numero_proposta):
-        """Verifica se uma proposta já existe em qualquer coleção"""
+        
+    def verificar_proposta_existente(self, numero_proposta, tipo_proposta=None):
+        """Verifica se uma proposta já existe - APENAS na coleção específica da aba"""
         try:
-            for colecao in self.colecoes.values():
-                # Buscar por número da proposta
-                docs = colecao.where(filter=FieldFilter('numero_proposta', '==', numero_proposta)).limit(1).get()
-                
-                for doc in docs:
-                    proposta_data = doc.to_dict()
-                    proposta_data['id'] = doc.id
-                    
-                    # Converter timestamps do Firestore para datetime
-                    proposta_data = self._converter_datas_proposta(proposta_data)
-                    
-                    # GARANTIR QUE DADOS_FILTRO EXISTE
-                    if 'dados_filtro' not in proposta_data:
-                        proposta_data['dados_filtro'] = {
-                            'regiao': '',
-                            'convenio': '',
-                            'produto': '',
-                            'status': ''
-                        }
-                    else:
-                        # Garantir que todos os campos existem no dados_filtro
-                        dados_filtro = proposta_data['dados_filtro']
-                        campos_necessarios = ['regiao', 'convenio', 'produto', 'status']
-                        for campo in campos_necessarios:
-                            if campo not in dados_filtro:
-                                dados_filtro[campo] = ''
-                    
-                    return proposta_data
+            print(f"🔍 Verificando contrato {numero_proposta}...")
             
-            return None
+            # ⭐⭐ MAPEAMENTO ABA → COLEÇÃO
+            mapeamento_abas = {
+                'Saque Fácil': 'tarefas1_saquefacil',
+                'Refin': 'tarefas2_refin', 
+                'Saque Direcionado': 'tarefas3_saquedirecionado',
+                'Solicitação Interna': 'tarefas4_solicitacao_interna'
+            }
+            
+            # ⭐⭐ SEMPRE USA A COLEÇÃO ESPECÍFICA DA ABA
+            if tipo_proposta and tipo_proposta in mapeamento_abas:
+                colecao_alvo = mapeamento_abas[tipo_proposta]
+                print(f"🎯 Verificando na coleção: {colecao_alvo} (aba: {tipo_proposta})")
+                
+                try:
+                    query = self.db.collection(colecao_alvo).where('numero_proposta', '==', numero_proposta)
+                    docs = query.limit(1).get()
+                    
+                    for doc in docs:
+                        proposta_data = doc.to_dict()
+                        proposta_data['id'] = doc.id
+                        proposta_data['colecao_origem'] = colecao_alvo
+                        
+                        # Converter datas
+                        proposta_data = self._converter_datas_proposta(proposta_data)
+                        
+                        # Garantir que dados_filtro existe
+                        if 'dados_filtro' not in proposta_data:
+                            proposta_data['dados_filtro'] = {
+                                'regiao': '', 'convenio': '', 'produto': '', 'status': ''
+                            }
+                        
+                        print(f"✅ Contrato {numero_proposta} encontrado na coleção {colecao_alvo}")
+                        return proposta_data
+                        
+                    print(f"✅ Contrato {numero_proposta} não encontrado na coleção {colecao_alvo} (novo)")
+                    return None
+                    
+                except Exception as e:
+                    print(f"❌ Erro ao verificar na coleção {colecao_alvo}: {e}")
+                    return None
+            
+            else:
+                print(f"❌ Aba não especificada ou inválida: {tipo_proposta}")
+                return None
             
         except Exception as e:
-            print(f"Erro ao verificar proposta existente: {e}")
+            print(f"❌ Erro ao verificar proposta existente: {e}")
             return None
         
     def obter_dados_tma(self, data_inicio, data_fim, analista, user_data):

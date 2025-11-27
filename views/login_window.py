@@ -1,10 +1,9 @@
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
                              QLineEdit, QPushButton, QFrame, QMessageBox,
                              QProgressBar, QDialog, QCheckBox)  
-from PyQt5.QtCore import pyqtSignal, Qt, QSettings
+from PyQt5.QtCore import pyqtSignal, Qt, QSettings, QTimer
 from PyQt5.QtGui import QPixmap, QIcon
 from utils.styles import get_login_styles
-from services.proposta_service import PropostaService
 from main import VERSAO_SISTEMA
 import sys
 import os
@@ -23,18 +22,31 @@ class LoginWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.settings = QSettings("AVERBSYS", "LoginApp")
-        self.proposta_service = PropostaService() 
+        self.proposta_service = None  # Será inicializado quando necessário
         
         # ⭐⭐ VERSÃO VEM DO MAIN.PY
         self.versao_local = VERSAO_SISTEMA
         self.init_ui()
-        self.load_saved_credentials()
+        # ⭐⭐ CARREGAR CREDENCIAIS APÓS INIT_UI
+        QTimer.singleShot(100, self.load_saved_credentials)  # ⭐⭐ Delay para garantir que a UI está criada
+
+    def _get_proposta_service(self):
+        """Inicializa o PropostaService apenas quando necessário"""
+        if self.proposta_service is None:
+            # ⭐⭐ IMPORTAÇÃO TARDIA para evitar circular
+            from services.proposta_service import PropostaService
+            self.proposta_service = PropostaService()
+            print("✅ PropostaService inicializado (tardio)")
+        return self.proposta_service
 
     def verificar_versao_sistema(self):
-        """Verifica se a versão local é compatível com a do Firebase - SEM CACHE LONGO"""
+        """Verifica se a versão local é compatível com a do Firebase"""
         try:
             print("🔍 Verificando versão do sistema no Firebase...")
-            versao_firebase = self.proposta_service.obter_versao_sistema()
+            
+            # ⭐⭐ USAR MÉTODO TARDIO
+            proposta_service = self._get_proposta_service()
+            versao_firebase = proposta_service.obter_versao_sistema()
             
             if versao_firebase:
                 print(f"📊 Versão Local: {self.versao_local} | Versão Firebase: {versao_firebase}")
@@ -47,15 +59,12 @@ class LoginWindow(QWidget):
                     return True
             else:
                 print("⚠️  Não foi possível verificar a versão do Firebase")
-                # ⭐⭐ DECISÃO: Permitir ou bloquear quando não consegue verificar?
-                # Se quiser mais segurança, retorne False
-                # Se quiser mais disponibilidade, retorne True
                 return False  # ⭐ BLOQUEIA 
                 
         except Exception as e:
             print(f"❌ Erro ao verificar versão: {e}")
-            # ⭐⭐ MESMA DECISÃO AQUI
             return False  # ⭐ BLOQUEIA 
+
 
     def mostrar_erro_versao(self, versao_firebase):
         """Mostra mensagem de erro de versão e bloqueia o login"""
@@ -229,6 +238,8 @@ class LoginWindow(QWidget):
         self.resize(400, 600)  # Aumentei um pouco a altura para acomodar os novos elementos
         self.center_window()
 
+        
+
     def toggle_password_visibility(self):
         """Alterna entre mostrar e ocultar a senha"""
         if self.password_input.echoMode() == QLineEdit.Password:
@@ -267,27 +278,36 @@ class LoginWindow(QWidget):
 
     def load_saved_credentials(self):
         """Carrega usuário e senha salvos se 'Lembrar' estiver ativo"""
-        remember_me = self.settings.value("remember_me", False, type=bool)
-        
-        if remember_me:
-            # ⭐ CARREGA USUÁRIO E SENHA
-            username = self.settings.value("username", "")
-            password = self.settings.value("password", "")  # ⭐ CARREGA SENHA
+        try:
+            remember_me = self.settings.value("remember_me", False, type=bool)
             
-            self.username_input.setText(username)
-            self.password_input.setText(password)
-            self.remember_me_checkbox.setChecked(True)
-        else:
-            # ⭐ DESMARCADO: LIMPA TUDO
-            self.username_input.clear()
-            self.password_input.clear()
-            self.remember_me_checkbox.setChecked(False)
-        
-        # Mantém o foco no campo apropriado
-        if self.username_input.text():
-            self.password_input.setFocus()
-        else:
-            self.username_input.setFocus()
+            # ⭐⭐ VERIFICAR SE OS CAMPOS JÁ FORAM CRIADOS
+            if not hasattr(self, 'username_input') or not hasattr(self, 'password_input'):
+                print("⚠️ Campos de login ainda não foram criados")
+                return
+                
+            if remember_me:
+                # ⭐ CARREGA USUÁRIO E SENHA
+                username = self.settings.value("username", "")
+                password = self.settings.value("password", "")  # ⭐ CARREGA SENHA
+                
+                self.username_input.setText(username)
+                self.password_input.setText(password)
+                self.remember_me_checkbox.setChecked(True)
+            else:
+                # ⭐ DESMARCADO: LIMPA TUDO
+                self.username_input.clear()
+                self.password_input.clear()
+                self.remember_me_checkbox.setChecked(False)
+            
+            # Mantém o foco no campo apropriado
+            if self.username_input.text():
+                self.password_input.setFocus()
+            else:
+                self.username_input.setFocus()
+                
+        except Exception as e:
+            print(f"❌ Erro ao carregar credenciais salvas: {e}")
 
     def save_credentials(self):
         """Salva ou remove as credenciais baseado no checkbox"""

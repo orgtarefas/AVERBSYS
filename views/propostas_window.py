@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QTabWidget)
+from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QTabWidget, QMessageBox)
 from PyQt5.QtCore import pyqtSignal, QTimer
 from PyQt5.QtGui import QIcon
 import os
@@ -59,6 +59,12 @@ class PropostasWindow(QWidget,
         self.numero_inputs = {}
         self.checkboxes_dict = {}
         self.proposta_em_andamento = False
+        
+        # ⭐⭐ NOVA VARIÁVEL: Rastrear aba atual
+        self.aba_atual = None
+        
+        # ⭐⭐ ADICIONE ESTA LINHA PARA CORRIGIR O ERRO:
+        self._historico_carregado = False  # Controle de carregamento do histórico
         
         # VARIÁVEIS PARA REANÁLISE
         self.eh_reanalise = False
@@ -135,11 +141,14 @@ class PropostasWindow(QWidget,
         self.tabs.addTab(self.tab_solicitacao_interna, "Solicitação Interna")
         self.tabs.addTab(self.tab_historico, "Histórico")
         
+        # ⭐⭐ DEFINIR ABA INICIAL
+        self.aba_atual = "Saque Fácil"
+        
         # Conectar sinais
         self.proposta_service.proposta_criada.connect(self.on_proposta_criada)
         
         # Adicionar ao layout principal
-        layout.addWidget(self.tabs)  # ⭐⭐ AGORA SÓ AS TABS
+        layout.addWidget(self.tabs)
         
         self.setLayout(layout)
 

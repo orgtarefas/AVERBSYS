@@ -17,20 +17,42 @@ class PropostasWindowPart10:
         except Exception:
             base_path = os.path.abspath(".")
         return os.path.join(base_path, relative_path)
-    
+        
     def aba_mudou(self, index):
-        """Quando muda de aba, reseta o estado"""
-        # Só permite mudar de aba se não houver proposta em andamento
-        if self.proposta_em_andamento:
-            # Volta para a aba anterior
-            current_index = self.tabs.currentIndex()
-            if current_index != index:
-                self.tabs.setCurrentIndex(current_index)
-                QMessageBox.warning(self, "Atenção", "Finalize a proposta atual antes de mudar de aba!")
-        else:
-            self.tipo_proposta_atual = None
-            self.data_criacao = None
-            self.tarefas_concluidas = {}
+        """Quando muda de aba, reseta o estado E atualiza a aba atual"""
+        try:
+            tab_name = self.tabs.tabText(index)
+            print(f"🔄 Mudou para aba: {tab_name}")
+            
+            # ⭐⭐ ATUALIZAR ABA ATUAL (variável que já existe no seu __init__)
+            self.aba_atual = tab_name
+            print(f"📍 Aba atual definida como: {self.aba_atual}")
+            
+            # ⭐⭐ CONTROLE DE CARREGAMENTO DO HISTÓRICO (variável que já existe)
+            if tab_name == "Histórico" and not self._historico_carregado:
+                print("📋 Carregando histórico pela primeira vez...")
+                self.carregar_historico()
+                self._historico_carregado = True
+                
+            elif tab_name == "TMA":
+                print("📊 Carregando dados TMA...")
+                self.carregar_dados_tma()
+            
+            # ⭐⭐ CÓDIGO ORIGINAL - Controle de proposta em andamento
+            if self.proposta_em_andamento:
+                # Volta para a aba anterior
+                current_index = self.tabs.currentIndex()
+                if current_index != index:
+                    self.tabs.setCurrentIndex(current_index)
+                    QMessageBox.warning(self, "Atenção", "Finalize a proposta atual antes de mudar de aba!")
+            else:
+                self.tipo_proposta_atual = None
+                self.data_criacao = None
+                self.tarefas_concluidas = {}
+                
+        except Exception as e:
+            print(f"❌ Erro ao mudar aba: {e}")
+                
     
     def travar_outras_abas(self, aba_atual):
         """Trava todas as abas exceto a atual quando uma proposta está em andamento"""
