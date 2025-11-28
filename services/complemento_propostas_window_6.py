@@ -57,17 +57,17 @@ class PropostasWindowPart6:
         sender.setCursorPosition(len(valor))
         sender.blockSignals(False)
 
-    def validar_formato_contrato(self, texto, tipo_proposta):
-        """Valida o formato baseado no tipo de proposta"""
-        input_field = self.numero_inputs[tipo_proposta]
+    def validar_formato_contrato(self, texto, tipo_contrato):
+        """Valida o formato baseado no tipo de contrato"""
+        input_field = self.numero_inputs[tipo_contrato]
         
         # Limpar estilo anterior
         input_field.setStyleSheet("")
         
-        print(f"🔍 Validando formato: '{texto}' | Tipo: {tipo_proposta}")
+        print(f"🔍 Validando formato: '{texto}' | Tipo: {tipo_contrato}")
         
         # Verificar se o formato está completo
-        formato_completo = self.verificar_formato_completo(texto, tipo_proposta)
+        formato_completo = self.verificar_formato_completo(texto, tipo_contrato)
         print(f"📋 Formato completo: {formato_completo}")
         
         if formato_completo:
@@ -75,8 +75,8 @@ class PropostasWindowPart6:
             input_field.setStyleSheet("border: 2px solid #28a745;")
             print(f"✅ Formato válido: {texto}")
             
-            # Configurar proposta em andamento
-            self.configurar_proposta_em_andamento(texto, tipo_proposta)
+            # Configurar contrato em andamento
+            self.configurar_contrato_em_andamento(texto, tipo_contrato)
                 
         else:
             # Formato incompleto ou inválido
@@ -84,34 +84,34 @@ class PropostasWindowPart6:
                 input_field.setStyleSheet("border: 2px solid #dc3545;")
             
             # Desabilitar tudo se formato não estiver completo
-            self.regiao_combos[tipo_proposta].setEnabled(False)
-            self.convenio_combos[tipo_proposta].setEnabled(False)
-            self.produto_combos[tipo_proposta].setEnabled(False)
+            self.regiao_combos[tipo_contrato].setEnabled(False)
+            self.convenio_combos[tipo_contrato].setEnabled(False)
+            self.produto_combos[tipo_contrato].setEnabled(False)
             
             # Resetar filtros dependentes
-            self.convenio_combos[tipo_proposta].clear()
-            self.convenio_combos[tipo_proposta].addItem("Selecione um convênio", "")
+            self.convenio_combos[tipo_contrato].clear()
+            self.convenio_combos[tipo_contrato].addItem("Selecione um convênio", "")
             
-            self.produto_combos[tipo_proposta].clear()
-            self.produto_combos[tipo_proposta].addItem("Selecione um produto", "")
+            self.produto_combos[tipo_contrato].clear()
+            self.produto_combos[tipo_contrato].addItem("Selecione um produto", "")
             
-            self.status_labels[tipo_proposta].setText("Não selecionado")
-            self.status_labels[tipo_proposta].setStyleSheet("font-weight: bold; padding: 5px;")
+            self.status_labels[tipo_contrato].setText("Não selecionado")
+            self.status_labels[tipo_contrato].setStyleSheet("font-weight: bold; padding: 5px;")
             
             # ⭐⭐ CORREÇÃO: Desabilitar ambos os botões quando formato não está completo
-            self.aprovar_buttons[tipo_proposta].setEnabled(False)
-            self.recusar_buttons[tipo_proposta].setEnabled(False)
+            self.aprovar_buttons[tipo_contrato].setEnabled(False)
+            self.recusar_buttons[tipo_contrato].setEnabled(False)
             
-            # Se tinha proposta em andamento, limpar completamente
-            if self.proposta_em_andamento and self.tipo_proposta_atual == tipo_proposta:
-                print("🔄 Limpando proposta em andamento...")
-                self.limpar_proposta(tipo_proposta)
+            # Se tinha contrato em andamento, limpar completamente
+            if self.contrato_em_andamento and self.tipo_contrato_atual == tipo_contrato:
+                print("🔄 Limpando contrato em andamento...")
+                self.limpar_contrato(tipo_contrato)
 
     
-    def verificar_formato_completo(self, texto, tipo_proposta):
+    def verificar_formato_completo(self, texto, tipo_contrato):
         """Verifica se o formato está completo baseado no tipo"""
         
-        if tipo_proposta == "Solicitação Interna":
+        if tipo_contrato == "Solicitação Interna":
             print(f"🔍 Analisando texto: '{texto}' | Comprimento: {len(texto)} | Hífens: {texto.count('-')}")
             
             # ⭐⭐ ACEITA 5 FORMATOS DIFERENTES ⭐⭐
@@ -205,18 +205,18 @@ class PropostasWindowPart6:
     def conectar_eventos_troco(self):
         """Conecta eventos de digitação nos inputs de troco para validação"""
         if hasattr(self, 'troco_inputs'):
-            for tipo_proposta, input_field in self.troco_inputs.items():
+            for tipo_contrato, input_field in self.troco_inputs.items():
                 if input_field is not None:
                     # Conectar evento de texto alterado para validação
                     input_field.textChanged.connect(
-                        lambda text, tp=tipo_proposta: self.validar_apos_troco(text, tp)
+                        lambda text, tp=tipo_contrato: self.validar_apos_troco(text, tp)
                     )
-                    print(f"🔧 Evento de validação conectado para troco input: {tipo_proposta}")
+                    print(f"🔧 Evento de validação conectado para troco input: {tipo_contrato}")
 
-    def validar_apos_troco(self, text, tipo_proposta):
+    def validar_apos_troco(self, text, tipo_contrato):
         """Valida os botões após digitar no campo de troco"""
-        print(f"💰 Digitando no Troco ({tipo_proposta}): '{text}'")
+        print(f"💰 Digitando no Troco ({tipo_contrato}): '{text}'")
         
         # Validar estado dos botões após digitar no troco
         if hasattr(self, 'validar_botoes_apos_mudanca_filtro'):
-            self.validar_botoes_apos_mudanca_filtro(tipo_proposta)
+            self.validar_botoes_apos_mudanca_filtro(tipo_contrato)

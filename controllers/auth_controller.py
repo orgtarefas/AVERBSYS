@@ -5,7 +5,6 @@ from views.home_window import HomeWindow
 from views.register_window import RegisterWindow
 from views.propostas_window import PropostasWindow
 from views.manutencao_usuarios_window import ManutencaoUsuariosWindow
-from services.user_service import UserService  # ⭐⭐ CORREÇÃO: Usar UserService direto
 
 class AuthController(QObject):
     login_success = pyqtSignal(dict)
@@ -15,13 +14,6 @@ class AuthController(QObject):
     
     def __init__(self):
         super().__init__()
-        # ⭐⭐ CORREÇÃO: Remover DatabaseManager e APIWorker
-        self.user_service = UserService()  # ⭐⭐ Usar UserService direto
-        
-        # Conectar sinais do user_service
-        self.user_service.user_authenticated.connect(self.on_login_verified)
-        self.user_service.user_registered.connect(self.on_user_registered)
-        
         # Inicializar views
         self.login_window = LoginWindow()
         self.home_window = HomeWindow()
@@ -29,78 +21,62 @@ class AuthController(QObject):
         self.propostas_window = None
         self.manutencao_window = None
         
-        # Conectar sinais das views
+        # ⭐⭐ CONECTAR SINAIS DAS VIEWS
         self.login_window.login_attempt.connect(self.handle_login)
         self.home_window.logout_request.connect(self.show_login)
         self.register_window.register_attempt.connect(self.handle_register)
         self.register_window.back_to_propostas.connect(self.voltar_para_propostas_from_register)
         
-        # Conectar próprios sinais
+        # ⭐⭐ CONECTAR PRÓPRIOS SINAIS
         self.login_success.connect(self.on_login_success)
         self.login_failed.connect(self.on_login_failed)
         self.register_success.connect(self.on_register_success)
         self.register_failed.connect(self.on_register_failed)
         
-        print("✅ AuthController inicializado (simplificado)")
-    
-    def show_login(self):
-        """Mostra a tela de login e esconde outras"""
-        print("🔐 Mostrando tela de login...")
-        self._hide_all_windows()
-        
-        # Garantir que os dados são recarregados
-        self.login_window.load_saved_credentials()
-        
-        self.login_window.show()
-        self.login_window.set_loading(False)
-        print("✅ Tela de login mostrada")
-    
-    def show_register_from_propostas(self):
-        """Mostra a tela de registro a partir da tela de propostas"""
-        if self.propostas_window:
-            self.propostas_window.hide()
-        
-        self.register_window.show()
-        self.register_window.set_loading(False)
-        self.register_window.clear_form()
-    
-    def voltar_para_propostas_from_register(self):
-        """Volta para propostas a partir do cadastro"""
-        self.register_window.hide()
-        if self.propostas_window:
-            self.propostas_window.show()
+        print("✅ AuthController inicializado (sinais conectados)")
     
     def handle_login(self, username, password):
         """Processa tentativa de login"""
-        print(f"🔐 Tentativa de login: {username}")
+        print(f"🔐 AuthController: Tentativa de login para: {username}")
         self.login_window.set_loading(True)
-        self.user_service.verificar_login(username, password)
-    
-    def handle_register(self, user_data):
-        """Processa tentativa de registro"""
-        print(f"👤 Tentativa de registro: {user_data['login']}")
-        self.register_window.set_loading(True)
-        self.user_service.cadastrar_usuario(user_data)
-    
+        
+        # ⭐⭐ CRIAR NOVA INSTÂNCIA DO UserService (não reutilizar)
+        from services.user_service import UserService
+        user_service = UserService()
+        
+        print(f"🔗 Conectando sinais do UserService...")
+        
+        # ⭐⭐ CONECTAR SINAL ANTES DE CHAMAR O MÉTODO
+        user_service.user_authenticated.connect(self.on_login_verified)
+        print("✅ Sinal user_authenticated conectado ao AuthController")
+        
+        # ⭐⭐ CHAMAR VERIFICAÇÃO DE LOGIN
+        print("🚀 Chamando verificar_login no UserService...")
+        user_service.verificar_login(username, password)
+        
     def on_login_verified(self, user_data, error_message):
         """Callback de verificação de login"""
+        print(f"📨 AuthController: Sinal recebido - user_data: {bool(user_data)}, error: {error_message}")
+        
+        # ⭐⭐ DESCONECTAR O SINAL PARA EVITAR MÚLTIPLAS CHAMADAS
+        try:
+            self.sender().user_authenticated.disconnect(self.on_login_verified)
+            print("🔌 Sinal desconectado após uso")
+        except:
+            pass
+        
         self.login_window.set_loading(False)
         
         if user_data and not error_message:
+            print(f"✅ AuthController: Login válido - {user_data['nome_completo']}")
+            print(f"🎯 Emitindo sinal login_success...")
             self.login_success.emit(user_data)
         elif error_message:
+            print(f"❌ AuthController: Erro no login - {error_message}")
             self.login_failed.emit(error_message)
         else:
+            print("❌ AuthController: Erro desconhecido no login")
             self.login_failed.emit("Erro desconhecido no login")
-    
-    def on_user_registered(self, success, message):
-        """Callback de registro de usuário"""
-        self.register_window.set_loading(False)
-        
-        if success:
-            self.register_success.emit()
-        else:
-            self.register_failed.emit(message)
     
     def on_login_success(self, user_data):
         """Callback de login bem-sucedido - REDIRECIONA PARA PROPOSTAS"""
@@ -129,6 +105,46 @@ class AuthController(QObject):
             import traceback
             traceback.print_exc()
             QMessageBox.critical(None, "Erro", f"Erro ao abrir sistema: {str(e)}")
+    
+    def on_login_failed(self, error_message):
+        """Callback de login falhou"""
+        print(f"❌ Login falhou: {error_message}")
+        self.login_window.show_error(error_message)
+        self.login_window.set_loading(False)
+    
+    def show_login(self):
+        """Mostra a tela de login e esconde outras"""
+        print("🔐 Mostrando tela de login...")
+        self._hide_all_windows()
+        
+        # Garantir que os dados são recarregados
+        self.login_window.load_saved_credentials()
+        
+        self.login_window.show()
+        self.login_window.set_loading(False)
+        print("✅ Tela de login mostrada")
+    
+    def show_register_from_propostas(self):
+        """Mostra a tela de registro a partir da tela de propostas"""
+        if self.propostas_window:
+            self.propostas_window.hide()
+        
+        self.register_window.show()
+        self.register_window.set_loading(False)
+        self.register_window.clear_form()
+    
+    def voltar_para_propostas_from_register(self):
+        """Volta para propostas a partir do cadastro"""
+        self.register_window.hide()
+        if self.propostas_window:
+            self.propostas_window.show()
+    
+    def handle_register(self, user_data):
+        """Processa tentativa de registro"""
+        print(f"👤 Tentativa de registro: {user_data['login']}")
+        self.register_window.set_loading(True)
+        # ⭐⭐ NOTA: Você precisará ajustar o UserService para registro também
+        # self.user_service.cadastrar_usuario(user_data)
     
     def abrir_manutencao_usuarios(self):
         """Abre tela de manutenção de usuários"""
@@ -168,11 +184,6 @@ class AuthController(QObject):
         
         if self.propostas_window:
             self.propostas_window.show()
-    
-    def on_login_failed(self, error_message):
-        """Callback de login falhou"""
-        self.login_window.show_error(error_message)
-        self.login_window.set_loading(False)
     
     def on_register_success(self):
         """Callback de registro bem-sucedido"""

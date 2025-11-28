@@ -15,21 +15,21 @@ class PropostasWindowPart3:
         except Exception:
             base_path = os.path.abspath(".")
         return os.path.join(base_path, relative_path)
-    
-    def criar_aba_proposta(self, tipo_proposta):
+        
+    def criar_aba_contrato(self, tipo_contrato):
         aba = QWidget()
         layout = QVBoxLayout()
         layout.setContentsMargins(5, 5, 5, 5)  
         layout.setSpacing(3)
         
-        # Área de entrada da proposta
-        input_frame = self.criar_area_input(tipo_proposta)
+        # Área de entrada do contrato
+        input_frame = self.criar_area_input(tipo_contrato)
         
         # Área de tarefas
-        tarefas_frame = self.criar_area_tarefas(tipo_proposta)
+        tarefas_frame = self.criar_area_tarefas(tipo_contrato)
         
         # Área de ações
-        acoes_frame = self.criar_area_acoes(tipo_proposta)
+        acoes_frame = self.criar_area_acoes(tipo_contrato)
         
         layout.addWidget(input_frame)
         layout.addWidget(tarefas_frame)
@@ -39,7 +39,7 @@ class PropostasWindowPart3:
         aba.setLayout(layout)
         return aba
         
-    def criar_area_input(self, tipo_proposta):
+    def criar_area_input(self, tipo_contrato):
         frame = QFrame()
         frame.setObjectName("formFrame")
         layout = QVBoxLayout()
@@ -50,8 +50,8 @@ class PropostasWindowPart3:
         input_layout = QHBoxLayout()
         input_layout.setSpacing(5)
         
-        # CONFIGURAÇÃO POR TIPO DE PROPOSTA
-        if tipo_proposta == "Solicitação Interna":
+        # CONFIGURAÇÃO POR TIPO DE CONTRATO
+        if tipo_contrato == "Solicitação Interna":
             placeholder = "cinco padrões distintos vide manual"
             max_length = 15
             texto_inicial = ""
@@ -74,13 +74,13 @@ class PropostasWindowPart3:
             }
         """)
         
-        numero_input.textChanged.connect(lambda text: self.validar_formato_contrato(text, tipo_proposta))
+        numero_input.textChanged.connect(lambda text: self.validar_formato_contrato(text, tipo_contrato))
         
-        self.numero_inputs[tipo_proposta] = numero_input
+        self.numero_inputs[tipo_contrato] = numero_input
         
         limpar_button = QPushButton("Limpar")
         limpar_button.setObjectName("secondaryButton")
-        limpar_button.clicked.connect(lambda: self.limpar_proposta(tipo_proposta))
+        limpar_button.clicked.connect(lambda: self.limpar_contrato(tipo_contrato))
         
         # ⭐⭐ ADICIONAR NOME DO ANALISTA
         input_layout.addWidget(QLabel(label_text))
@@ -106,7 +106,7 @@ class PropostasWindowPart3:
         input_layout.addWidget(analista_label)
         
         # ⭐⭐ BOTÕES DO SISTEMA (Cadastrar, Manutenção, Sair) - EM TODAS AS ABAS EXCETO HISTÓRICO
-        if tipo_proposta != "Histórico":
+        if tipo_contrato != "Histórico":
             # Botão Cadastrar Usuário (apenas para Dev)
             cadastrar_button = QPushButton("Cadastrar")
             cadastrar_button.setObjectName("primaryButton")
@@ -151,9 +151,9 @@ class PropostasWindowPart3:
         regiao_combo = QComboBox()
         regiao_combo.setObjectName("comboField")
         regiao_combo.currentIndexChanged.connect(
-            lambda: self.on_regiao_selecionada(tipo_proposta)
+            lambda: self.on_regiao_selecionada(tipo_contrato)
         )
-        self.regiao_combos[tipo_proposta] = regiao_combo
+        self.regiao_combos[tipo_contrato] = regiao_combo
         regiao_layout.addWidget(regiao_combo)
         linha1_layout.addLayout(regiao_layout)
         
@@ -165,9 +165,9 @@ class PropostasWindowPart3:
         convenio_combo.setObjectName("comboField")
         convenio_combo.setEnabled(False)
         convenio_combo.currentIndexChanged.connect(
-            lambda: self.on_convenio_selecionado(tipo_proposta)
+            lambda: self.on_convenio_selecionado(tipo_contrato)
         )
-        self.convenio_combos[tipo_proposta] = convenio_combo
+        self.convenio_combos[tipo_contrato] = convenio_combo
         convenio_layout.addWidget(convenio_combo)
         linha1_layout.addLayout(convenio_layout)
         
@@ -179,9 +179,9 @@ class PropostasWindowPart3:
         produto_combo.setObjectName("comboField")
         produto_combo.setEnabled(False)
         produto_combo.currentIndexChanged.connect(
-            lambda: self.on_produto_selecionado(tipo_proposta)
+            lambda: self.on_produto_selecionado(tipo_contrato)
         )
-        self.produto_combos[tipo_proposta] = produto_combo
+        self.produto_combos[tipo_contrato] = produto_combo
         produto_layout.addWidget(produto_combo)
         linha1_layout.addLayout(produto_layout)
         
@@ -204,7 +204,7 @@ class PropostasWindowPart3:
         """)
         status_label.setMinimumHeight(30)
         status_label.setAlignment(Qt.AlignCenter)
-        self.status_labels[tipo_proposta] = status_label
+        self.status_labels[tipo_contrato] = status_label
         status_layout.addWidget(status_label)
         linha1_layout.addLayout(status_layout)
         
@@ -224,7 +224,7 @@ class PropostasWindowPart3:
         cpf_input.textChanged.connect(self.formatar_cpf)
         cpf_input.setEnabled(False)  # ⭐⭐ INICIALMENTE DESABILITADO
         self.cpf_inputs = getattr(self, 'cpf_inputs', {})
-        self.cpf_inputs[tipo_proposta] = cpf_input
+        self.cpf_inputs[tipo_contrato] = cpf_input
         cpf_layout.addWidget(cpf_input)
         linha2_layout.addLayout(cpf_layout)
         
@@ -239,12 +239,12 @@ class PropostasWindowPart3:
         valor_input.textChanged.connect(self.formatar_valor)
         valor_input.setEnabled(False)  # ⭐⭐ INICIALMENTE DESABILITADO
         self.valor_inputs = getattr(self, 'valor_inputs', {})
-        self.valor_inputs[tipo_proposta] = valor_input
+        self.valor_inputs[tipo_contrato] = valor_input
         valor_layout.addWidget(valor_input)
         linha2_layout.addLayout(valor_layout)
 
         # ⭐⭐ VALOR DE TROCO (apenas para Refin e Saque Direcionado) - LARGURA FIXA
-        if tipo_proposta in ["Refin", "Saque Direcionado"]:
+        if tipo_contrato in ["Refin", "Saque Direcionado"]:
             troco_layout = QVBoxLayout()
             troco_layout.setSpacing(2)
             troco_layout.addWidget(QLabel("Valor de Troco:"))
@@ -255,7 +255,7 @@ class PropostasWindowPart3:
             troco_input.textChanged.connect(self.formatar_valor)
             troco_input.setEnabled(False)  # ⭐⭐ INICIALMENTE DESABILITADO
             self.troco_inputs = getattr(self, 'troco_inputs', {})
-            self.troco_inputs[tipo_proposta] = troco_input
+            self.troco_inputs[tipo_contrato] = troco_input
             troco_layout.addWidget(troco_input)
             linha2_layout.addLayout(troco_layout)
         
@@ -270,7 +270,7 @@ class PropostasWindowPart3:
         prazo_input.setValidator(QIntValidator(0, 999, self))
         prazo_input.setEnabled(False)  # ⭐⭐ INICIALMENTE DESABILITADO
         self.prazo_inputs = getattr(self, 'prazo_inputs', {})
-        self.prazo_inputs[tipo_proposta] = prazo_input
+        self.prazo_inputs[tipo_contrato] = prazo_input
         prazo_layout.addWidget(prazo_input)
         linha2_layout.addLayout(prazo_layout)
         
@@ -285,7 +285,7 @@ class PropostasWindowPart3:
         observacoes_input.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         observacoes_input.setEnabled(False)  # ⭐⭐ INICIALMENTE DESABILITADO
         self.observacoes_inputs = getattr(self, 'observacoes_inputs', {})
-        self.observacoes_inputs[tipo_proposta] = observacoes_input
+        self.observacoes_inputs[tipo_contrato] = observacoes_input
         observacoes_layout.addWidget(observacoes_input)
         linha2_layout.addLayout(observacoes_layout)
         
@@ -294,7 +294,7 @@ class PropostasWindowPart3:
         data_info_label.setObjectName("infoLabel")
         
         self.data_info_labels = getattr(self, 'data_info_labels', {})
-        self.data_info_labels[tipo_proposta] = data_info_label
+        self.data_info_labels[tipo_contrato] = data_info_label
         
         layout.addLayout(input_layout)
         layout.addLayout(linha1_layout)
@@ -303,9 +303,9 @@ class PropostasWindowPart3:
         frame.setLayout(layout)
         return frame
 
-    def atualizar_status_ui(self, tipo_proposta, status):
+    def atualizar_status_ui(self, tipo_contrato, status):
         """Atualiza a UI baseado no status do produto"""
-        status_label = self.status_labels.get(tipo_proposta)
+        status_label = self.status_labels.get(tipo_contrato)
         if not status_label:
             return
             
@@ -338,40 +338,40 @@ class PropostasWindowPart3:
         status_label.setText(texto_status)
         
         # Habilitar/desabilitar campos conforme o status
-        self.controlar_campos_formulario(tipo_proposta, campos_habilitados)
+        self.controlar_campos_formulario(tipo_contrato, campos_habilitados)
     
-    def controlar_campos_formulario(self, tipo_proposta, habilitar):
+    def controlar_campos_formulario(self, tipo_contrato, habilitar):
         """Controla a habilitação dos campos do formulário"""
         # CPF
-        cpf_input = self.cpf_inputs.get(tipo_proposta)
+        cpf_input = self.cpf_inputs.get(tipo_contrato)
         if cpf_input:
             cpf_input.setEnabled(habilitar)
             if not habilitar:
                 cpf_input.clear()
         
         # Valor Liberado
-        valor_input = self.valor_inputs.get(tipo_proposta)
+        valor_input = self.valor_inputs.get(tipo_contrato)
         if valor_input:
             valor_input.setEnabled(habilitar)
             if not habilitar:
                 valor_input.clear()
         
         # Valor de Troco (apenas para Refin e Saque Direcionado)
-        troco_input = self.troco_inputs.get(tipo_proposta)
+        troco_input = self.troco_inputs.get(tipo_contrato)
         if troco_input:
             troco_input.setEnabled(habilitar)
             if not habilitar:
                 troco_input.clear()
         
         # Prazo
-        prazo_input = self.prazo_inputs.get(tipo_proposta)
+        prazo_input = self.prazo_inputs.get(tipo_contrato)
         if prazo_input:
             prazo_input.setEnabled(habilitar)
             if not habilitar:
                 prazo_input.clear()
         
         # Observações
-        observacoes_input = self.observacoes_inputs.get(tipo_proposta)
+        observacoes_input = self.observacoes_inputs.get(tipo_contrato)
         if observacoes_input:
             observacoes_input.setEnabled(habilitar)
             if not habilitar:

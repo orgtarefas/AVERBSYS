@@ -55,10 +55,10 @@ class PropostasWindow(QWidget,
         self.data_criacao = None
         self.data_conclusao = None
         self.tarefas_concluidas = {}
-        self.tipo_proposta_atual = None
+        self.tipo_contrato_atual = None  # ⭐⭐ MUDADO: tipo_proposta_atual → tipo_contrato_atual
         self.numero_inputs = {}
         self.checkboxes_dict = {}
-        self.proposta_em_andamento = False
+        self.contrato_em_andamento = False  # ⭐⭐ MUDADO: proposta_em_andamento → contrato_em_andamento
         
         # ⭐⭐ NOVA VARIÁVEL: Rastrear aba atual
         self.aba_atual = None
@@ -68,7 +68,7 @@ class PropostasWindow(QWidget,
         
         # VARIÁVEIS PARA REANÁLISE
         self.eh_reanalise = False
-        self.proposta_original = None
+        self.contrato_original = None  # ⭐⭐ MUDADO: proposta_original → contrato_original
         
         # Dicionários para armazenar os comboboxes dos filtros
         self.regiao_combos = {}
@@ -126,10 +126,10 @@ class PropostasWindow(QWidget,
         """)
         
         # Criar as abas específicas
-        self.tab_saque_facil = self.criar_aba_proposta("Saque Fácil")
-        self.tab_refin = self.criar_aba_proposta("Refin") 
-        self.tab_saque_direcionado = self.criar_aba_proposta("Saque Direcionado")
-        self.tab_solicitacao_interna = self.criar_aba_proposta("Solicitação Interna")
+        self.tab_saque_facil = self.criar_aba_contrato("Saque Fácil")
+        self.tab_refin = self.criar_aba_contrato("Refin") 
+        self.tab_saque_direcionado = self.criar_aba_contrato("Saque Direcionado")
+        self.tab_solicitacao_interna = self.criar_aba_contrato("Solicitação Interna")
         
         # Tab de Histórico
         self.tab_historico = self.criar_aba_historico()
@@ -145,7 +145,7 @@ class PropostasWindow(QWidget,
         self.aba_atual = "Saque Fácil"
         
         # Conectar sinais
-        self.proposta_service.proposta_criada.connect(self.on_proposta_criada)
+        self.proposta_service.proposta_criada.connect(self.on_contrato_criado)
         
         # Adicionar ao layout principal
         layout.addWidget(self.tabs)

@@ -38,15 +38,15 @@ class PropostasWindowPart10:
                 print("📊 Carregando dados TMA...")
                 self.carregar_dados_tma()
             
-            # ⭐⭐ CÓDIGO ORIGINAL - Controle de proposta em andamento
-            if self.proposta_em_andamento:
+            # ⭐⭐ CÓDIGO ORIGINAL - Controle de contrato em andamento
+            if self.contrato_em_andamento:
                 # Volta para a aba anterior
                 current_index = self.tabs.currentIndex()
                 if current_index != index:
                     self.tabs.setCurrentIndex(current_index)
-                    QMessageBox.warning(self, "Atenção", "Finalize a proposta atual antes de mudar de aba!")
+                    QMessageBox.warning(self, "Atenção", "Finalize o contrato atual antes de mudar de aba!")
             else:
-                self.tipo_proposta_atual = None
+                self.tipo_contrato_atual = None
                 self.data_criacao = None
                 self.tarefas_concluidas = {}
                 
@@ -55,29 +55,30 @@ class PropostasWindowPart10:
                 
     
     def travar_outras_abas(self, aba_atual):
-        """Trava todas as abas exceto a atual quando uma proposta está em andamento"""
+        """Trava todas as abas exceto a atual quando um contrato está em andamento"""
         current_index = self.tabs.indexOf(self.tabs.currentWidget())
         
         for i in range(self.tabs.count()):
             if i != current_index:
                 self.tabs.setTabEnabled(i, False)
         
-        print("🔒 Abas travadas - proposta em andamento")
+        print("🔒 Abas travadas - contrato em andamento")
     
     def destravar_todas_abas(self):
-        """Destrava todas as abas quando não há proposta em andamento"""
+        """Destrava todas as abas quando não há contrato em andamento"""
         for i in range(self.tabs.count()):
             self.tabs.setTabEnabled(i, True)
         
         print("🔓 Todas as abas destravadas")
     
-    def on_proposta_criada(self, success, message):
+    def on_contrato_criado(self, success, message):
+        """Callback quando um contrato é criado/finalizado"""
         if success:
             QMessageBox.information(self, "Sucesso", message)
             
             # Limpar formulário da aba atual
-            if self.tipo_proposta_atual:
-                self.limpar_proposta(self.tipo_proposta_atual)
+            if self.tipo_contrato_atual:
+                self.limpar_contrato(self.tipo_contrato_atual)
             
             # Atualizar histórico
             self.carregar_historico()
@@ -88,60 +89,60 @@ class PropostasWindowPart10:
         """Carrega o histórico inicial baseado no perfil do usuário"""
         try:
             if self.user_data['perfil'] == 'Analista':
-                # Para analistas, carrega apenas suas próprias propostas
-                propostas = self.proposta_service.listar_propostas_por_analista(self.user_data['login'])
+                # Para analistas, carrega apenas seus próprios contratos
+                contratos = self.proposta_service.listar_contratos_por_analista(self.user_data['login'])
             else:
-                # Para outros perfis, carrega todas as propostas dos últimos 30 dias
+                # Para outros perfis, carrega todos os contratos dos últimos 30 dias
                 data_inicio = datetime.now() - timedelta(days=30)
-                propostas = self.proposta_service.listar_propostas_com_filtros(
+                contratos = self.proposta_service.listar_contratos_com_filtros(
                     data_inicio=data_inicio,
                     data_fim=datetime.now()
                 )
             
-            self.preencher_tabela_historico(propostas)
+            self.preencher_tabela_historico(contratos)
             
         except Exception as e:
             print(f"Erro ao carregar histórico: {e}")
     
-    def preencher_tabela_historico(self, propostas):
-        """Preenche a tabela de histórico com todas as propostas incluindo os novos campos"""
-        self.historico_table.setRowCount(len(propostas))
+    def preencher_tabela_historico(self, contratos):
+        """Preenche a tabela de histórico com todos os contratos incluindo os novos campos"""
+        self.historico_table.setRowCount(len(contratos))
         
-        for row, proposta in enumerate(propostas):
+        for row, contrato in enumerate(contratos):
             # CAMPOS ORIGINAIS
-            self.historico_table.setItem(row, 0, QTableWidgetItem(proposta['tipo_proposta']))
-            self.historico_table.setItem(row, 1, QTableWidgetItem(str(proposta['numero_proposta'])))
-            self.historico_table.setItem(row, 2, QTableWidgetItem(proposta['analista']))
+            self.historico_table.setItem(row, 0, QTableWidgetItem(contrato['tipo_contrato']))
+            self.historico_table.setItem(row, 1, QTableWidgetItem(str(contrato['numero_contrato'])))
+            self.historico_table.setItem(row, 2, QTableWidgetItem(contrato['analista']))
             
-            status_item = QTableWidgetItem(proposta['status'])
-            if proposta['status'] == 'Aprovada':
+            status_item = QTableWidgetItem(contrato['status'])
+            if contrato['status'] == 'Aprovada':
                 status_item.setBackground(Qt.green)
-            elif proposta['status'] == 'Recusada':
+            elif contrato['status'] == 'Recusada':
                 status_item.setBackground(Qt.red)
-            elif proposta['status'] == 'Pendente':
+            elif contrato['status'] == 'Pendente':
                 status_item.setBackground(Qt.yellow)
             
             self.historico_table.setItem(row, 3, status_item)
             
             # Formatar datas
-            data_criacao = proposta['data_criacao']
+            data_criacao = contrato['data_criacao']
             if hasattr(data_criacao, 'strftime'):
                 self.historico_table.setItem(row, 4, QTableWidgetItem(data_criacao.strftime("%d/%m/%Y %H:%M:%S")))
             else:
                 self.historico_table.setItem(row, 4, QTableWidgetItem(str(data_criacao)))
             
-            data_conclusao = proposta.get('data_conclusao')
+            data_conclusao = contrato.get('data_conclusao')
             if data_conclusao and hasattr(data_conclusao, 'strftime'):
                 self.historico_table.setItem(row, 5, QTableWidgetItem(data_conclusao.strftime("%d/%m/%Y %H:%M:%S")))
             else:
                 self.historico_table.setItem(row, 5, QTableWidgetItem(" - "))
             
             # Exibir duração
-            duracao = proposta.get('duracao_total', ' - ')
+            duracao = contrato.get('duracao_total', ' - ')
             self.historico_table.setItem(row, 6, QTableWidgetItem(duracao))
             
             # CAMPOS DOS FILTROS
-            dados_filtro = proposta.get('dados_filtro', {})
+            dados_filtro = contrato.get('dados_filtro', {})
             
             regiao = dados_filtro.get('regiao', 'N/A')
             convenio = dados_filtro.get('convenio', 'N/A')
@@ -178,40 +179,40 @@ class PropostasWindowPart10:
         # ⭐⭐ AJUSTAR AUTOMATICAMENTE AS COLUNAS AO CONTEÚDO (opcional)
         self.historico_table.resizeColumnsToContents()
 
-    def aplicar_filtros(self):
-        """Aplica os filtros selecionados na tabela de histórico"""
-        try:
+   # def aplicar_filtros(self):
+   #     """Aplica os filtros selecionados na tabela de histórico"""
+   #     try:
             # Obter datas do período - já são objetos QDate
-            data_inicio_qdate = self.data_inicio.date()
-            data_fim_qdate = self.data_fim.date()
+   #         data_inicio_qdate = self.data_inicio.date()
+   #         data_fim_qdate = self.data_fim.date()
             
             # Converter QDate para Python date
-            data_inicio = data_inicio_qdate.toPyDate()
-            data_fim = data_fim_qdate.toPyDate()
+    #        data_inicio = data_inicio_qdate.toPyDate()
+    #        data_fim = data_fim_qdate.toPyDate()
             
             # Obter analista selecionado
-            analista_selecionado = None
-            if self.user_data['perfil'] == 'Analista':
-                analista_selecionado = self.user_data['login']
-            else:
-                analista_data = self.combo_analista.currentData()
-                if analista_data != "todos":
-                    analista_selecionado = analista_data
+    ##        analista_selecionado = None
+     #       if self.user_data['perfil'] == 'Analista':
+     #           analista_selecionado = self.user_data['login']
+     #       else:
+     #           analista_data = self.combo_analista.currentData()
+     #           if analista_data != "todos":
+     #               analista_selecionado = analista_data
             
-            # Buscar propostas com filtros usando o método mais simples
-            propostas = self.proposta_service.listar_propostas_simples_filtro(
-                data_inicio=data_inicio,
-                data_fim=data_fim,
-                analista=analista_selecionado
-            )
+            # Buscar contratos com filtros usando o método mais simples
+     #       contratos = self.proposta_service.listar_contratos_simples_filtro(
+     #           data_inicio=data_inicio,
+     #           data_fim=data_fim,
+     #           analista=analista_selecionado
+      #      )
             
-            self.preencher_tabela_historico(propostas)
+      #      self.preencher_tabela_historico(contratos)
             
             # Mostrar quantidades de resultados
-            QMessageBox.information(self, "Filtro Aplicado", f"Encontradas {len(propostas)} propostas no período selecionado.")
+      #      QMessageBox.information(self, "Filtro Aplicado", f"Encontrados {len(contratos)} contratos no período selecionado.")
             
-        except Exception as e:
-            QMessageBox.warning(self, "Erro", f"Erro ao aplicar filtros: {str(e)}")
+      #  except Exception as e:
+      #      QMessageBox.warning(self, "Erro", f"Erro ao aplicar filtros: {str(e)}")
 
     def exportar_para_xlsx(self):
         """Exporta os dados da tabela para XLSX incluindo todos os novos campos"""
@@ -224,7 +225,7 @@ class PropostasWindowPart10:
             file_path, _ = QFileDialog.getSaveFileName(
                 self, 
                 "Salvar Arquivo Excel", 
-                f"propostas_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx", 
+                f"contratos_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx", 
                 "Excel Files (*.xlsx)"
             )
             

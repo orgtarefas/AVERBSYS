@@ -25,9 +25,9 @@ class GoogleSheetsService:
             print(f"Total de linhas: {len(df)}")
             
             # ⭐⭐ DEBUG: Mostrar algumas linhas para verificar a estrutura
-            print("📋 Primeiras 5 linhas da planilha:")
-            for i in range(min(5, len(df))):
-                print(f"Linha {i}: {df.iloc[i].tolist()}")
+            #print("📋 Primeiras 5 linhas da planilha:")
+            #for i in range(min(5, len(df))):
+            #    print(f"Linha {i}: {df.iloc[i].tolist()}")
             
             dados_processados = []
             
@@ -43,8 +43,8 @@ class GoogleSheetsService:
                     status = str(row.iloc[7]).strip() if len(row) > 7 and pd.notna(row.iloc[7]) else "N/A"
                     
                     # ⭐⭐ DEBUG: Mostrar linha específica se for o produto problemático
-                    if produto == "CREDCESTA":
-                        print(f"🚨 LINHA CREDCESTA ENCONTRADA: Convênio='{convenio}', Produto='{produto}', Status='{status}'")
+                    #if produto == "CREDCESTA":
+                    #    print(f"🚨 LINHA CREDCESTA ENCONTRADA: Convênio='{convenio}', Produto='{produto}', Status='{status}'")
                     
                     dados_processados.append({
                         'Região': regiao,

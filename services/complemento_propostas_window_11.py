@@ -248,69 +248,71 @@ class PropostasWindowPart11:
             print(f"❌ Erro ao {'travar' if travar else 'destravar'} abas: {e}")
     
     def carregar_analistas_tma(self):
+        print(f"comentada def carregar_analistas_tma")
         """Carrega os analistas no combo box baseado no perfil do usuário"""
-        try:
-            self.tma_analista_combo.clear()
+    #    try:
+    #        self.tma_analista_combo.clear()
             
-            perfil = self.user_data.get('perfil', '').lower()
+    #        perfil = self.user_data.get('perfil', '').lower()
             
             # Se for Gerente ou Dev, mostra TODOS + analistas específicos
-            if perfil in ['gerente', 'dev']:
-                self.tma_analista_combo.addItem("TODOS", "todos")
+    #        if perfil in ['gerente', 'dev']:
+    #            self.tma_analista_combo.addItem("TODOS", "todos")
                 
                 # ⭐⭐ CORREÇÃO: Usar proposta_service em vez de user_service
-                analistas = self.proposta_service.obter_analistas_tma()
-                for analista in analistas:
-                    self.tma_analista_combo.addItem(analista['login'], analista['login'])
-            else:
+    #            analistas = self.proposta_service.obter_analistas_tma()
+    #            for analista in analistas:
+    #                self.tma_analista_combo.addItem(analista['login'], analista['login'])
+    #        else:
                 # Para outros perfis, mostra apenas o próprio login
-                login_atual = self.user_data.get('login', '')
-                self.tma_analista_combo.addItem(login_atual, login_atual)
+    #            login_atual = self.user_data.get('login', '')
+    #            self.tma_analista_combo.addItem(login_atual, login_atual)
             
-            print(f"✅ Analistas TMA carregados: {self.tma_analista_combo.count()} itens")
+    #        print(f"✅ Analistas TMA carregados: {self.tma_analista_combo.count()} itens")
             
-        except Exception as e:
-            print(f"❌ Erro ao carregar analistas TMA: {e}")
-            QMessageBox.warning(self, "Erro", f"Erro ao carregar analistas: {str(e)}")
+    #    except Exception as e:
+    #        print(f"❌ Erro ao carregar analistas TMA: {e}")
+    #        QMessageBox.warning(self, "Erro", f"Erro ao carregar analistas: {str(e)}")
     
     def carregar_dados_tma(self):
         """Carrega os dados TMA na tabela"""
-        try:
-            # Obter parâmetros
-            data_inicio = self.tma_data_inicio.date().toString("yyyy-MM-dd")
-            data_fim = self.tma_data_fim.date().toString("yyyy-MM-dd")
-            analista_selecionado = self.tma_analista_combo.currentData()
-            
-            print(f"🔍 Carregando dados TMA: {data_inicio} a {data_fim}, Analista: {analista_selecionado}")
+        print(f"✅ Dados TMA comentado carregamento def carregar_dados_tma")
+    #    try:
+    #        # Obter parâmetros
+    #        data_inicio = self.tma_data_inicio.date().toString("yyyy-MM-dd")
+    #        data_fim = self.tma_data_fim.date().toString("yyyy-MM-dd")
+    #        analista_selecionado = self.tma_analista_combo.currentData()
+        
+        #    print(f"🔍 Carregando dados TMA: {data_inicio} a {data_fim}, Analista: {analista_selecionado}")
             
             # Buscar dados do TMA
-            dados_tma = self.proposta_service.obter_dados_tma(
-                data_inicio, data_fim, analista_selecionado, self.user_data
-            )
+        #    dados_tma = self.proposta_service.obter_dados_tma(
+        #        data_inicio, data_fim, analista_selecionado, self.user_data
+        #    )
             
             # Preencher tabela
-            self.tabela_tma.setRowCount(len(dados_tma))
+        #    self.tabela_tma.setRowCount(len(dados_tma))
             
-            for row, item in enumerate(dados_tma):
+        #    for row, item in enumerate(dados_tma):
                 # Analista
-                self.tabela_tma.setItem(row, 0, QTableWidgetItem(item['analista']))
+        #        self.tabela_tma.setItem(row, 0, QTableWidgetItem(item['analista']))
                 
                 # Qtd Contratos
-                self.tabela_tma.setItem(row, 1, QTableWidgetItem(str(item['qtd_contratos'])))
+        #        self.tabela_tma.setItem(row, 1, QTableWidgetItem(str(item['qtd_contratos'])))
                 
                 # Duração Total (formato HH:MM:SS)
-                duracao_total = self.formatar_duracao(item['duracao_total'])
-                self.tabela_tma.setItem(row, 2, QTableWidgetItem(duracao_total))
+        #        duracao_total = self.formatar_duracao(item['duracao_total'])
+        #        self.tabela_tma.setItem(row, 2, QTableWidgetItem(duracao_total))
                 
                 # TMA (média por contrato)
-                tma = self.calcular_tma(item['duracao_total'], item['qtd_contratos'])
-                self.tabela_tma.setItem(row, 3, QTableWidgetItem(tma))
+        #        tma = self.calcular_tma(item['duracao_total'], item['qtd_contratos'])
+        #        self.tabela_tma.setItem(row, 3, QTableWidgetItem(tma))
             
-            print(f"✅ Dados TMA carregados: {len(dados_tma)} registros")
+        #    print(f"✅ Dados TMA carregados: {len(dados_tma)} registros")
             
-        except Exception as e:
-            print(f"❌ Erro ao carregar dados TMA: {e}")
-            QMessageBox.warning(self, "Erro", f"Erro ao carregar dados TMA: {str(e)}")
+        #except Exception as e:
+        #    print(f"❌ Erro ao carregar dados TMA: {e}")
+        #    QMessageBox.warning(self, "Erro", f"Erro ao carregar dados TMA: {str(e)}")
     
     def calcular_tma(self, duracao_total_segundos, qtd_contratos):
         """Calcula o TMA (Tempo Médio de Atendimento)"""
@@ -399,4 +401,103 @@ class PropostasWindowPart11:
         """Função para enviar relatório para Teams (futura implementação)"""
         QMessageBox.information(self, "Em Desenvolvimento", 
                                "Funcionalidade de envio para Teams será implementada em breve.")
-                               
+        
+
+    def limpar_contrato(self, tipo_contrato):
+        """Limpa todos os campos do contrato específico"""
+        try:
+            print(f"🧹 Limpando contrato: {tipo_contrato}")
+            
+            # Limpar número do contrato
+            if tipo_contrato in self.numero_inputs:
+                self.numero_inputs[tipo_contrato].clear()
+                self.numero_inputs[tipo_contrato].setEnabled(True)
+                self.numero_inputs[tipo_contrato].setStyleSheet("")
+            
+            # Resetar filtros
+            if tipo_contrato in self.regiao_combos:
+                self.regiao_combos[tipo_contrato].setCurrentIndex(0)
+                self.regiao_combos[tipo_contrato].setEnabled(False)
+            
+            if tipo_contrato in self.convenio_combos:
+                self.convenio_combos[tipo_contrato].clear()
+                self.convenio_combos[tipo_contrato].addItem("Selecione um convênio", "")
+                self.convenio_combos[tipo_contrato].setEnabled(False)
+            
+            if tipo_contrato in self.produto_combos:
+                self.produto_combos[tipo_contrato].clear()
+                self.produto_combos[tipo_contrato].addItem("Selecione um produto", "")
+                self.produto_combos[tipo_contrato].setEnabled(False)
+            
+            # Resetar status
+            if tipo_contrato in self.status_labels:
+                self.status_labels[tipo_contrato].setText("Não selecionado")
+                self.status_labels[tipo_contrato].setStyleSheet("""
+                    QLabel {
+                        font-weight: bold; 
+                        padding: 5px; 
+                        background-color: #f8f9fa; 
+                        border: 1px solid #dee2e6; 
+                        border-radius: 3px;
+                        color: #6c757d;
+                    }
+                """)
+            
+            # Limpar checkboxes
+            if tipo_contrato in self.checkboxes_dict:
+                for checkbox in self.checkboxes_dict[tipo_contrato].values():
+                    checkbox.setChecked(False)
+                    checkbox.setEnabled(False)
+            
+            # Limpar campos adicionais
+            if hasattr(self, 'cpf_inputs') and tipo_contrato in self.cpf_inputs:
+                self.cpf_inputs[tipo_contrato].clear()
+                self.cpf_inputs[tipo_contrato].setEnabled(False)
+            
+            if hasattr(self, 'valor_inputs') and tipo_contrato in self.valor_inputs:
+                self.valor_inputs[tipo_contrato].clear()
+                self.valor_inputs[tipo_contrato].setEnabled(False)
+            
+            if hasattr(self, 'troco_inputs') and tipo_contrato in self.troco_inputs:
+                self.troco_inputs[tipo_contrato].clear()
+                self.troco_inputs[tipo_contrato].setEnabled(False)
+            
+            if hasattr(self, 'prazo_inputs') and tipo_contrato in self.prazo_inputs:
+                self.prazo_inputs[tipo_contrato].clear()
+                self.prazo_inputs[tipo_contrato].setEnabled(False)
+            
+            if hasattr(self, 'observacoes_inputs') and tipo_contrato in self.observacoes_inputs:
+                self.observacoes_inputs[tipo_contrato].clear()
+                self.observacoes_inputs[tipo_contrato].setEnabled(False)
+            
+            # Resetar dados internos
+            self.contrato_em_andamento = False
+            self.tipo_contrato_atual = None
+            self.data_criacao = None
+            self.data_conclusao = None
+            self.tarefas_concluidas = {}
+            self.eh_reanalise = False
+            self.contrato_original = None
+            
+            # Parar timer
+            self.timer_duracao.stop()
+            
+            # Resetar info de data
+            if tipo_contrato in self.data_info_labels:
+                self.data_info_labels[tipo_contrato].setText("Data/Hora Criação: --/--/-- --:--:--")
+            
+            # Destravar todas as abas
+            self.destravar_todas_abas()
+            
+            # Desabilitar botões
+            if tipo_contrato in self.aprovar_buttons:
+                self.aprovar_buttons[tipo_contrato].setEnabled(False)
+            
+            if tipo_contrato in self.recusar_buttons:
+                self.recusar_buttons[tipo_contrato].setEnabled(False)
+            
+            print(f"✅ Contrato {tipo_contrato} limpo com sucesso")
+            
+        except Exception as e:
+            print(f"❌ Erro ao limpar contrato: {e}")        
+                                

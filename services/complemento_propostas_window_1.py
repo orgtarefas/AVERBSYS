@@ -58,27 +58,27 @@ class PropostasWindowPart1:
                                 "Verifique se a planilha possui dados nas colunas G (Região), C (Convênio) e F (Produto).")
                 return
             
-            for tipo_proposta in ['Saque Fácil', 'Refin', 'Saque Direcionado', 'Solicitação Interna']:
-                print(f"🔄 Carregando filtros para: {tipo_proposta}")
+            for tipo_contrato in ['Saque Fácil', 'Refin', 'Saque Direcionado', 'Solicitação Interna']:
+                print(f"🔄 Carregando filtros para: {tipo_contrato}")
                 
-                if tipo_proposta in self.regiao_combos:
-                    self.regiao_combos[tipo_proposta].clear()
-                    self.regiao_combos[tipo_proposta].addItem("Selecione uma região", "")
+                if tipo_contrato in self.regiao_combos:
+                    self.regiao_combos[tipo_contrato].clear()
+                    self.regiao_combos[tipo_contrato].addItem("Selecione uma região", "")
                     for regiao in regioes:
-                        self.regiao_combos[tipo_proposta].addItem(regiao, regiao)
+                        self.regiao_combos[tipo_contrato].addItem(regiao, regiao)
                     
                     # ⭐⭐ INICIAR COM REGIÃO DESABILITADA ⭐⭐
-                    self.regiao_combos[tipo_proposta].setEnabled(False)
-                    print(f"   ✅ Regiões carregadas: {self.regiao_combos[tipo_proposta].count()} itens (Desabilitada)")
+                    self.regiao_combos[tipo_contrato].setEnabled(False)
+                    print(f"   ✅ Regiões carregadas: {self.regiao_combos[tipo_contrato].count()} itens (Desabilitada)")
                     
                     # Garantir que convênio e produto também tenham "Selecione" e desabilitados
-                    self.convenio_combos[tipo_proposta].clear()
-                    self.convenio_combos[tipo_proposta].addItem("Selecione um convênio", "")
-                    self.convenio_combos[tipo_proposta].setEnabled(False)
+                    self.convenio_combos[tipo_contrato].clear()
+                    self.convenio_combos[tipo_contrato].addItem("Selecione um convênio", "")
+                    self.convenio_combos[tipo_contrato].setEnabled(False)
                     
-                    self.produto_combos[tipo_proposta].clear()
-                    self.produto_combos[tipo_proposta].addItem("Selecione um produto", "")
-                    self.produto_combos[tipo_proposta].setEnabled(False)
+                    self.produto_combos[tipo_contrato].clear()
+                    self.produto_combos[tipo_contrato].addItem("Selecione um produto", "")
+                    self.produto_combos[tipo_contrato].setEnabled(False)
             
             print(f"✅ Filtros carregados com {len(regioes)} regiões (todos desabilitados inicialmente)")
             

@@ -164,7 +164,7 @@ class PropostasWindowPart5:
         return frame
     
     def carregar_analistas(self):
-        """Carrega a lista de analistas disponíveis (apenas para perfis não Analista)"""
+        """Carrega a lista de analistas disponíveis - SEM LEITURA AUTOMÁTICA"""
         try:
             # ⭐⭐ CORREÇÃO: Analista só vê ele mesmo
             if self.user_data['perfil'] == 'Analista':
@@ -173,28 +173,48 @@ class PropostasWindowPart5:
                 self.combo_analista.setEnabled(False)
                 return
                 
-            # Buscar todos os analistas únicos do banco de dados
-            propostas = self.proposta_service.listar_todas_propostas()
-            analistas = set()
-            
-            for proposta in propostas:
-                if 'analista' in proposta:
-                    analistas.add(proposta['analista'])
-            
-            # Ordenar e adicionar ao combobox
-            analistas_ordenados = sorted(list(analistas))
-            
-            self.combo_analista.clear()
-            self.combo_analista.addItem("Todos", "todos")
-            for analista in analistas_ordenados:
-                self.combo_analista.addItem(analista, analista)
+            # ⭐⭐ CORREÇÃO: Se o histórico não foi carregado, mostra apenas "Todos"
+            if not hasattr(self, '_historico_carregado') or not self._historico_carregado:
+                self.combo_analista.clear()
+                self.combo_analista.addItem("Todos", "todos")
+                print("⚠️  Histórico não carregado - analistas limitados a 'Todos'")
+                return
                 
+            # ⭐⭐ SE CHEGOU AQUI, O HISTÓRICO JÁ FOI CARREGADO - buscar analistas dos dados existentes
+            if hasattr(self, 'propostas_cache') and self.propostas_cache:
+                analistas = set()
+                for proposta in self.propostas_cache:
+                    if 'analista' in proposta:
+                        analistas.add(proposta['analista'])
+                
+                analistas_ordenados = sorted(list(analistas))
+                
+                self.combo_analista.clear()
+                self.combo_analista.addItem("Todos", "todos")
+                for analista in analistas_ordenados:
+                    self.combo_analista.addItem(analista, analista)
+                    
+                print(f"✅ {len(analistas_ordenados)} analistas carregados do cache")
+            else:
+                # Fallback: mostra apenas "Todos"
+                self.combo_analista.clear()
+                self.combo_analista.addItem("Todos", "todos")
+                print("⚠️  Cache vazio - analistas limitados a 'Todos'")
+                    
         except Exception as e:
             print(f"Erro ao carregar analistas: {e}")
 
     def aplicar_filtros(self):
-        """Aplica os filtros selecionados na tabela de histórico"""
+        """Aplica os filtros selecionados - SEM LEITURA AUTOMÁTICA"""
         try:
+            # ⭐⭐ CORREÇÃO: Se o histórico não foi carregado, não faz nada
+            if not hasattr(self, '_historico_carregado') or not self._historico_carregado:
+                print("⚠️  Histórico não carregado - clique primeiro na aba Histórico")
+                self.historico_table.setRowCount(0)
+                if hasattr(self, 'label_total_historico'):
+                    self.label_total_historico.setText("Total: 0 propostas (clique na aba Histórico primeiro)")
+                return
+                
             data_inicio = self.data_inicio.date().toPyDate()
             data_fim = self.data_fim.date().toPyDate()
             
@@ -206,10 +226,18 @@ class PropostasWindowPart5:
             
             print(f"🔍 Aplicando filtros - Data: {data_inicio} a {data_fim}, Analista: {analista}")
             
-            # ⭐⭐ CORREÇÃO: Usar o método correto que existe no PropostaService
-            propostas = self.proposta_service.listar_propostas_simples_filtro(
-                data_inicio, data_fim, analista
-            )
+            # ⭐⭐ CORREÇÃO: Usar dados já carregados (sem novas leituras)
+            # Verifica se temos cache, senão usa método do service
+            if hasattr(self, 'propostas_cache') and self.propostas_cache:
+                propostas = self.filtrar_propostas_localmente(
+                    self.propostas_cache, data_inicio, data_fim, analista
+                )
+            else:
+                # Fallback: usa o service (fará leituras - não ideal)
+                print("⚠️  Cache vazio - usando service (fará leituras)")
+                propostas = self.proposta_service.listar_propostas_simples_filtro(
+                    data_inicio, data_fim, analista
+                )
             
             # Limpar tabela
             self.historico_table.setRowCount(0)
@@ -257,6 +285,55 @@ class PropostasWindowPart5:
             print(f"❌ Erro ao aplicar filtros: {e}")
             import traceback
             traceback.print_exc()
+
+    def filtrar_propostas_localmente(self, propostas, data_inicio, data_fim, analista):
+        """Filtra propostas localmente sem fazer leituras no Firebase"""
+        try:
+            from datetime import datetime
+            
+            propostas_filtradas = []
+            
+            for proposta in propostas:
+                data_criacao = proposta.get('data_criacao')
+                
+                # Filtro de data
+                if data_inicio and data_criacao:
+                    if hasattr(data_criacao, 'date'):
+                        if data_criacao.date() < data_inicio:
+                            continue
+                    elif isinstance(data_criacao, str):
+                        try:
+                            data_obj = datetime.strptime(data_criacao.split()[0], '%Y-%m-%d').date()
+                            if data_obj < data_inicio:
+                                continue
+                        except:
+                            continue
+                
+                if data_fim and data_criacao:
+                    if hasattr(data_criacao, 'date'):
+                        if data_criacao.date() > data_fim:
+                            continue
+                    elif isinstance(data_criacao, str):
+                        try:
+                            data_obj = datetime.strptime(data_criacao.split()[0], '%Y-%m-%d').date()
+                            if data_obj > data_fim:
+                                continue
+                        except:
+                            continue
+                
+                # Filtro de analista
+                if analista and analista != "todos":
+                    if proposta.get('analista') != analista:
+                        continue
+                
+                propostas_filtradas.append(proposta)
+            
+            print(f"✅ {len(propostas_filtradas)} propostas após filtro local")
+            return propostas_filtradas
+            
+        except Exception as e:
+            print(f"❌ Erro ao filtrar localmente: {e}")
+            return []            
 
     def formatar_data(self, data):
         """Formata data para exibição"""

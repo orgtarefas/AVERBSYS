@@ -18,7 +18,7 @@ class PropostasWindowPart4:
             base_path = os.path.abspath(".")
         return os.path.join(base_path, relative_path)
     
-    def criar_area_tarefas(self, tipo_proposta):
+    def criar_area_tarefas(self, tipo_contrato):
         frame = QFrame()
         frame.setObjectName("formFrame")
         layout = QVBoxLayout()
@@ -35,7 +35,7 @@ class PropostasWindowPart4:
         tarefas_layout = QGridLayout()
         
         # Carregar tarefas específicas do tipo - ⭐⭐ AGORA FUNCIONA
-        tarefas = get_tarefas_por_tipo(tipo_proposta)
+        tarefas = get_tarefas_por_tipo(tipo_contrato)
         checkboxes = {}
         
         row, col = 0, 0
@@ -43,7 +43,7 @@ class PropostasWindowPart4:
             checkbox = QCheckBox(descricao)
             checkbox.setObjectName("checkbox")
             checkbox.setEnabled(False)
-            checkbox.stateChanged.connect(lambda state, k=key, tp=tipo_proposta: self.atualizar_tarefa(k, state, tp))
+            checkbox.stateChanged.connect(lambda state, k=key, tp=tipo_contrato: self.atualizar_tarefa(k, state, tp))
             checkboxes[key] = checkbox
             
             tarefas_layout.addWidget(checkbox, row, col)
@@ -52,7 +52,7 @@ class PropostasWindowPart4:
                 col = 0
                 row += 1
         
-        self.checkboxes_dict[tipo_proposta] = checkboxes
+        self.checkboxes_dict[tipo_contrato] = checkboxes
         
         tarefas_widget.setLayout(tarefas_layout)
         scroll.setWidget(tarefas_widget)
@@ -62,7 +62,7 @@ class PropostasWindowPart4:
         frame.setLayout(layout)
         return frame
 
-    def criar_area_acoes(self, tipo_proposta):
+    def criar_area_acoes(self, tipo_contrato):
         frame = QFrame()
         frame.setObjectName("formFrame")
         layout = QHBoxLayout()
@@ -71,18 +71,18 @@ class PropostasWindowPart4:
         
         aprovar_button = QPushButton("✅ Aprovar Contrato")
         aprovar_button.setObjectName("successButton")
-        aprovar_button.clicked.connect(lambda: self.finalizar_proposta(tipo_proposta, "Aprovada"))
+        aprovar_button.clicked.connect(lambda: self.finalizar_contrato(tipo_contrato, "Aprovada"))
         aprovar_button.setEnabled(False)
         
         recusar_button = QPushButton("❌ Recusar Contrato")  
         recusar_button.setObjectName("dangerButton")
-        recusar_button.clicked.connect(lambda: self.recusar_proposta(tipo_proposta))
+        recusar_button.clicked.connect(lambda: self.recusar_contrato(tipo_contrato))
         recusar_button.setEnabled(False)
         
         self.aprovar_buttons = getattr(self, 'aprovar_buttons', {})
         self.recusar_buttons = getattr(self, 'recusar_buttons', {})
-        self.aprovar_buttons[tipo_proposta] = aprovar_button
-        self.recusar_buttons[tipo_proposta] = recusar_button
+        self.aprovar_buttons[tipo_contrato] = aprovar_button
+        self.recusar_buttons[tipo_contrato] = recusar_button
         
         layout.addWidget(aprovar_button)
         layout.addWidget(recusar_button)
@@ -101,7 +101,7 @@ class PropostasWindowPart4:
             if current_tab_name in ["Saque Fácil", "Refin", "Saque Direcionado"]:
                 self.ajustar_altura_tarefas(current_tab_name)
 
-    def ajustar_altura_tarefas(self, tipo_proposta):
+    def ajustar_altura_tarefas(self, tipo_contrato):
         """Ajusta a altura da área de tarefas baseado no tamanho da janela"""
         tab_widget = self.tabs.currentWidget()
         for i in range(tab_widget.layout().count()):

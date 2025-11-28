@@ -22,31 +22,38 @@ class LoginWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.settings = QSettings("AVERBSYS", "LoginApp")
-        self.proposta_service = None  # Será inicializado quando necessário
+        self.proposta_service = None
+        self.user_service = None  # ⭐⭐ ADICIONAR REFERÊNCIA ÚNICA
         
         # ⭐⭐ VERSÃO VEM DO MAIN.PY
         self.versao_local = VERSAO_SISTEMA
         self.init_ui()
-        # ⭐⭐ CARREGAR CREDENCIAIS APÓS INIT_UI
-        QTimer.singleShot(100, self.load_saved_credentials)  # ⭐⭐ Delay para garantir que a UI está criada
+        QTimer.singleShot(100, self.load_saved_credentials)
+
+    def _get_user_service(self):
+        """Inicializa o UserService apenas uma vez"""
+        if self.user_service is None:
+            from services.user_service import UserService
+            self.user_service = UserService()
+            print("✅ UserService inicializado (única instância)")
+        return self.user_service
 
     def _get_proposta_service(self):
         """Inicializa o PropostaService apenas quando necessário"""
         if self.proposta_service is None:
-            # ⭐⭐ IMPORTAÇÃO TARDIA para evitar circular
             from services.proposta_service import PropostaService
             self.proposta_service = PropostaService()
             print("✅ PropostaService inicializado (tardio)")
         return self.proposta_service
 
     def verificar_versao_sistema(self):
-        """Verifica se a versão local é compatível com a do Firebase"""
+        """Verifica se a versão local é compatível com a do Firebase - BLOQUEIA SE INCOMPATÍVEL"""
         try:
             print("🔍 Verificando versão do sistema no Firebase...")
             
-            # ⭐⭐ USAR MÉTODO TARDIO
-            proposta_service = self._get_proposta_service()
-            versao_firebase = proposta_service.obter_versao_sistema()
+            # ⭐⭐ USAR MESMA INSTÂNCIA DO UserService
+            user_service = self._get_user_service()
+            versao_firebase = user_service.obter_versao_sistema()
             
             if versao_firebase:
                 print(f"📊 Versão Local: {self.versao_local} | Versão Firebase: {versao_firebase}")
@@ -59,27 +66,42 @@ class LoginWindow(QWidget):
                     return True
             else:
                 print("⚠️  Não foi possível verificar a versão do Firebase")
-                return False  # ⭐ BLOQUEIA 
-                
+                self.mostrar_erro_versao("Não foi possível verificar a versão do sistema")
+                return False
+                    
         except Exception as e:
             print(f"❌ Erro ao verificar versão: {e}")
-            return False  # ⭐ BLOQUEIA 
+            self.mostrar_erro_versao(f"Erro ao verificar versão: {str(e)}")
+            return False
 
 
-    def mostrar_erro_versao(self, versao_firebase):
+    def mostrar_erro_versao(self, versao_ou_erro):
         """Mostra mensagem de erro de versão e bloqueia o login"""
-        mensagem = f"""
-        ⚠️ **ATUALIZAÇÃO NECESSÁRIA**
+        if isinstance(versao_ou_erro, str) and "versão" not in versao_ou_erro.lower():
+            # É uma mensagem de erro
+            mensagem = f"""
+            ⚠️ **ERRO DE SISTEMA**
 
-        A versão do sistema local (v{self.versao_local}) não é compatível 
-        com a versão do servidor (v{versao_firebase}).
+            {versao_ou_erro}
 
-        **Por favor, entre em contato com a equipe de desenvolvimento 
-        para obter a versão mais recente do sistema.**
-        """
+            **Por favor, entre em contato com a equipe de desenvolvimento.**
+            """
+            titulo = "Erro do Sistema"
+        else:
+            # É uma versão incompatível
+            mensagem = f"""
+            ⚠️ **ATUALIZAÇÃO NECESSÁRIA**
+
+            A versão do sistema local (v{self.versao_local}) não é compatível 
+            com a versão do servidor (v{versao_ou_erro}).
+
+            **Por favor, entre em contato com a equipe de desenvolvimento 
+            para obter a versão mais recente do sistema.**
+            """
+            titulo = "Versão Incompatível"
         
         msg_box = QMessageBox()
-        msg_box.setWindowTitle("Versão Incompatível")
+        msg_box.setWindowTitle(titulo)
         msg_box.setIcon(QMessageBox.Critical)
         msg_box.setTextFormat(Qt.RichText)
         msg_box.setText(mensagem)
@@ -353,6 +375,9 @@ class LoginWindow(QWidget):
         self.save_credentials()
         
         self.set_loading(True)
+        
+        # ⭐⭐ EMITIR SINAL DIRETAMENTE PARA O AuthController
+        print(f"🚀 Emitindo sinal login_attempt para AuthController...")
         self.login_attempt.emit(username, password)
 
     def center_window(self):
@@ -430,9 +455,8 @@ class LoginWindow(QWidget):
         # ⭐⭐ CARREGAR DESENVOLVEDORES APENAS QUANDO O BOTÃO "?" É CLICADO
         desenvolvedores = []
         try:
-            # Criar UserService e chamar o método APENAS AGORA
-            from services.user_service import UserService
-            user_service = UserService()
+            # ⭐⭐ USAR MESMA INSTÂNCIA DO UserService
+            user_service = self._get_user_service()
             desenvolvedores = user_service.buscar_desenvolvedores_firebase()
             print(f"✅ Desenvolvedores carregados sob demanda: {len(desenvolvedores)} itens")
         except Exception as e:
