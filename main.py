@@ -6,13 +6,13 @@ from PyQt5.QtWidgets import QApplication, QMessageBox
 from PyQt5.QtCore import Qt
 
 
-VERSAO_SISTEMA = "0.7"  # versão
+VERSAO_SISTEMA = "0.7b"  # versão
 
 def verificar_validade_sistema():
     """Verifica se o sistema está dentro do período de validade"""
     try:
         # Data de expiração do sistema
-        data_expiracao = datetime(2025, 12, 13)  
+        data_expiracao = datetime(2026, 1, 20)  
         
         data_atual = datetime.now()
         
